@@ -48,7 +48,7 @@ Roles: `--d50` primary text · `--d400` secondary/muted · `--d500` tertiary/pla
 |---|---|---|---|
 | `--brand` | `#3369ff` | same | Primary CTA, focus rings, links, selection |
 | `--brand-dim` / `--brand-glow` | 15% / 25% | 12% / 20% | Tints, focus halos |
-| `--accent` | `#8b4ff4` | same | **The one token products re-theme.** Nav active, chip selection, chat caret, coach marks |
+| `--accent` | `#8b4ff4` | same | **The one token products re-theme — global, not per-product.** Nav active, chip selection, chat caret, coach marks. There is no `--qa-accent`, `--talent-accent` or any other product-scoped accent: a product sets `--accent` once and the whole system follows |
 | `--accent-rgb` / `-dim` / `-glow` | — | — | Derivatives of the accent |
 | `--teal` | `#6fdfe2` | `#0d8f95` | Secondary accent; darkened in light for text contrast |
 | `--ai` | `linear-gradient(104deg, #0066ff 0%, #61adf1 47%, #6fdfe2 100%)` | same | AI provenance — gradients, model dot, progress fills |
@@ -145,7 +145,7 @@ ls: tighter −0.03em · tight −0.02em · normal 0 · wide 0.04em · wider 0.0
 | Buttons | `.btn` + `.btn-brand/ghost/err/warn/ok/accent`, `.btn-sm/.btn-lg` | Contextual color; 13/700; radius `--r-md` |
 | Tags & badges | `.tag` + `tag-ok/warn/err/info/teal/ai/accent/neutral`, `.signal-badge` | Uppercase 700; semantic color + border tint |
 | Chips & filters | `.chip` (`default/active/brand/ok/warn/err`), `.afs` strip | Active = accent |
-| Dropdown | `.v2-dropdown` pattern | Keyboard, `aria-haspopup="listbox"` |
+| Dropdown | `.v2-dropdown` + `-btn`/`-panel`/`-option`, `.dd-label-text` | **The only select control.** Custom listbox: full keyboard model, typeahead, focus return, `aria-haspopup="listbox"` / `role="listbox"` / `aria-selected`. Never use a native `<select>`, and never rebuild this pattern by hand |
 | Cards | `.card`, `.bcard`, `.narrative-card`, `.finding` | One `.tier-primary` per view |
 | Form inputs | `.input`, `.field`, masked API-key input | Focus = brand; mask secrets |
 | Feeds, donut, score ring, progress bars, chart primitives, annotations | see doc | Chart header = title + controls + stats + legend |
@@ -163,7 +163,7 @@ Stat card `.stat-card` (semantic `.stat-delta.up/.down`) · List group `.list-gr
 Drawer `.drawer-stage(.open)/.drawer-panel` · Popover `.pop(.open)/.pop-bubble` · Confirmation (popconfirm, `.pop-actions`) · Inline note `.inline-note(.ok/.warn)` · Coach mark `.coach-anchor/.coach-dot/.coach-card` · Loading overlay `.loading-stage/.loading-overlay/.loading-panel` · Error state `.error-state` + `.offline-bar` · Error pages `.error-page/.error-code` (404/500) · Type-to-confirm (modal + gated destructive button)
 
 ### Forms & Inputs
-Field & states `.ds-field/.field-input` (`.is-error/.is-success` + `.field-help`) · Select `.ds-select` (+ `.is-error`) · Search `.search-field` · Textarea `.ds-textarea` (+ `.is-error`) · Date picker `.cal` (today outlined, selected accent) · Radio cards `.radio-cards/.radio-card` (`:has()`) · Stepper `.stepper` · File upload `.uploader` · Tag input `.tag-input/.tag-token` (+ `.is-error`) · Password `.pw-wrap/.pw-eye/.pw-meter` (weak/mid/good) · OTP `.otp` (+ `.is-error`) · Time picker `.time-picker/.time-panel/.time-opt` · Input group `.input-group/.ig-addon` · Copy field `.copy-field` · Dual range `.drange` · Upload progress `.upload-list/.upload-item` (uploading/done/error) · Error summary `.form-summary` (`role="alert"`, links to fields)
+Field & states `.ds-field/.field-input` (`.is-error/.is-success` + `.field-help`) · Select → use `.v2-dropdown` (+ `.roster-dd` full-width, `.is-error`); label it with `aria-labelledby` and add `input[type=hidden]` to post a value · Search `.search-field` · Textarea `.ds-textarea` (+ `.is-error`) · Date picker `.cal` (today outlined, selected accent) · Radio cards `.radio-cards/.radio-card` (`:has()`) · Stepper `.stepper` · File upload `.uploader` · Tag input `.tag-input/.tag-token` (+ `.is-error`) · Password `.pw-wrap/.pw-eye/.pw-meter` (weak/mid/good) · OTP `.otp` (+ `.is-error`) · Time picker `.time-picker/.time-panel/.time-opt` · Input group `.input-group/.ig-addon` · Copy field `.copy-field` · Dual range `.drange` · Upload progress `.upload-list/.upload-item` (uploading/done/error) · Error summary `.form-summary` (`role="alert"`, links to fields)
 
 ### AI Components
 | Component | Classes | Notes |
@@ -183,6 +183,24 @@ Field & states `.ds-field/.field-input` (`.is-error/.is-success` + `.field-help`
 ### AiMY Canvas (shared chat shell)
 Float input bar `.aimy-float-bar/-input/-send` (thinking state) · Filter tray `.filter-tray/.filter-chip` · Canvas overlay `.aimy-overlay(.open)` · Chat messages `.chat-msg.user/.aimy` + `.msg-bubble` · AiMY toast `.aimy-toast` · AiMY badge `.aimy-badge`. Follows the theme (dark glass in dark, light glass in light). User bubble = accent tint; AiMY bubble = card surface.
 
+### AiMY Doctrine Primitives
+
+Components required by the **Knowledge-to-Action Doctrine**. These are not optional garnish — the doctrine's review gate fails a surface that omits them (see §9).
+
+| Component | Classes | Anchor | Doctrine rule |
+|---|---|---|---|
+| **Work state** | `.work-state` + `.ws-detected/-recommended/-drafted/-staged/-completed/-failed`, `.ws-dot`; pipeline `.ws-track/.ws-step(.is-past/.is-current)/.ws-sep` | `#work-state` | §2.3 — a **required field** on every surfaced item. Canonical value lives on `data-work-state`; `handled`/`blocked` are display aliases for `completed`/`failed` only |
+| **Confidence badge** | `.conf-badge` + `.conf-high/-medium/-low`, `.conf-meter`, `.conf-val` | `#sc-conf-badge` | §5.7, Level 5 — show where confidence changes interpretation. Medium and low must also state *what limits them* |
+| **Briefing card (extended)** | `.bcard-ack-row`, `.bcard-ack-btn(.is-acked)`, `.bcard-dismiss-picker(.open)`, `.bcard-dismiss-reason` | `#bcard-extended` | §5.9 — every item is dismissible with a captured reason; reversible dismissals offer Undo |
+| **Entry modes** | `.entry-action` + `.em-direct/-investigate/-prompt/-review`, `.em-ico`; spec tag `.entry-mode-tag` | `#entry-modes` | §3 — classification is **mandatory and explicit** at design time. An unclassified action fails review |
+| **Memory panel** | `.memory-panel`, `.mem-head/.mem-age/.mem-thread/.mem-line/.mem-who/.mem-what/.mem-foot` | `#sc-memory-panel` | §4 continuity — shows what is carried forward and lets the user drop it |
+| **Governance change request** | `.gov-cr-card`, `.gov-cr-head/-title/-diff/-current/-proposed/-label/-val/-arrow/-rationale/-blast/-actions` | `#kpihub-cr-card` | §3.1 rung 3 — governed config changes get a diff, a rationale, a blast radius, and an audit note |
+| **Decision zone** | `.decision-zone`, `.dz-prompt/.dz-consequence/.dz-actions/.dz-spacer/.dz-meta` | `#disputes-decision` | §3 — **Accept · Edit · Reject**. Edit is not optional |
+| **Audit trail** | `.audit-trail`, `.audit-entry(.is-ok/.is-warn/.is-err/.is-ai)`, `.audit-ico/-main/-action/-actor/-who/-side/-time`, `.audit-revert`, `.audit-irreversible` | `#disputes-audit` | Level 6 — every entry names actor, action, time, and reversibility. AiMY's own actions are never disguised as the user's |
+| **Modal + wizard** | `.modal` + `.steps/.step(.done/.active)` + carried `.ctx-chips` | `#disputes-modal` | §7.2 — the structured destination. The canvas does not replace workflows that need ordered inputs or a durable record |
+| **AI unavailable** | `.ai-unavailable(.is-degraded)`, `.aiu-mark/-title/-body/-fallback/-note` | `#ai-unavailable` | §6.7, Level 7 — a designed state. Must say **what still works** and never lose staged work to an outage |
+| **Confirmation ladder** | documentation table (binds rungs to existing components) | `#confirmation-ladder` | §3.1 — confirmation is proportional to consequence; the ladder runs one way only |
+
 ---
 
 ## 6. States
@@ -199,7 +217,7 @@ Every interactive component documents its states statically (for Figma capture) 
 
 - WCAG 2.1 AA target; both themes audited to ≥3:1 for all text (≥4.5:1 for body).
 - Focus: `:focus-visible` only, 2px `--brand` outline, 2px offset. Never remove without replacement; never use the accent for focus.
-- Native elements first: `<details>` accordions/trees, native checkbox/radio/range/select where possible.
+- Native elements first: `<details>` accordions/trees, native checkbox/radio/range where possible. **Select is the deliberate exception** — `.v2-dropdown` is a custom listbox chosen for cross-platform visual consistency, and it therefore carries its own keyboard model, focus management and ARIA (§10.3).
 - `prefers-reduced-motion: reduce` disables shimmer, pulses, spinners, lifts.
 - Error summaries use `role="alert"` and receive focus on submit; every error state pairs color with text.
 - Mask sensitive fields (API keys, passwords) by default.
@@ -212,3 +230,103 @@ Every interactive component documents its states statically (for Figma capture) 
 |---|---|
 | `index.html` | The design system — tokens, components, states, themes, live demos |
 | `design-system.md` | This reference |
+| `00_AiMY_Knowledge_to_Action_Doctrine.md` | Interaction doctrine — owns *behaviour*, not tokens or component anatomy |
+
+> **Naming note.** The doctrine refers to the component library as **`design-doc.html`**. In this repository that file is **`index.html`** — the two names denote the same artefact. Every `design-doc.html` anchor cited in the doctrine resolves against `index.html`.
+
+---
+
+## 9. Doctrine binding
+
+The doctrine's §0 binding rule: *"Where this document names a component, that name must resolve to an entry in `design-doc.html`."* Every §6.2 responsibility now resolves:
+
+| Doctrine responsibility | Primitive | Anchor |
+|---|---|---|
+| Operational metrics and status | Cards, Badges & Status, Chart Primitives, AiMY Badge | `#cards` · `#badges` · `#chart-primitives` · `#canvas-badge` |
+| Briefing item, full anatomy | Briefing Card — Extended | `#bcard-extended` |
+| AI interpretation within a briefing | AiMY Insight Panel · Chart Annotations · Memory Panel | `#ai-insight-panel` · `#anno-card` · `#sc-memory-panel` |
+| Prioritised recommendations | AiMY Action Chips | `#v2-chip` |
+| Ambient conversational entry | Float Input Bar · Filter Tray | `#canvas-float` · `#canvas-filter-tray` |
+| Explain what AiMY detected | Context Zone | `#context-zone` |
+| Hold the active conversation | Canvas Overlay · Chat Messages | `#canvas-overlay` · `#canvas-messages` |
+| Govern consequential changes | Governance Change Request · Decision Zone · Audit Trail · Modal + Wizard | `#kpihub-cr-card` · `#disputes-decision` · `#disputes-audit` · `#disputes-modal` |
+| Confidence disclosure | Confidence Badge | `#sc-conf-badge` |
+| Reversible / completed work | AiMY Toast with `.aimy-toast-undo` | `#canvas-toast` |
+| Empty, loading, unavailable | Empty & Loading States · AI Unavailable | `#states` · `#ai-unavailable` |
+| Declare AI work state (§2.3) | Work State | `#work-state` |
+| Classify actions (§3) | Entry Modes | `#entry-modes` |
+| Proportional confirmation (§3.1) | Confirmation Ladder | `#confirmation-ladder` |
+
+---
+
+## 10. Doctrine gap register
+
+Discrepancies between the doctrine text and the implemented library, recorded for the doctrine owner.
+
+### 10.1 §6.3 gaps that were already closed
+
+The doctrine listed five primitives as "missing — do not improvise". All five existed in the library at the time of the audit; the doctrine was stale, not the implementation.
+
+| Cited as missing | Actually implemented at | Classes |
+|---|---|---|
+| Suggestion Review | `#ai-suggestion` | `.ai-suggestion` with `del`/`ins` diff, Accept / Reject / Edit |
+| Type-to-Confirm | `#confirm-destructive` | Modal + gated destructive button |
+| Context Chips | `#context-chips` | `.ctx-chips` / `.ctx-chip`, removable |
+| Stat Card | `#stat-card` | `.stat-card`, `.stat-delta.up/.down` |
+| Response Actions | `#ai-actions` | Copy / regenerate / thumbs |
+
+**Note on Suggestion Review vs. Governance Change Request.** They are not duplicates. `.ai-suggestion` handles message-level edits; `.gov-cr-card` handles governed configuration, where a rationale, a blast radius and an audit note are required. Use the lighter one unless the change touches governed config.
+
+### 10.2 `--d200` — the doctrine's claim is incorrect
+
+The doctrine's "Open scale flag" states `--d200` is undefined in the dark scale and that `fill: var(--d200)` silently falls back to black, and §11 accordingly bans the token. **This is false.** `--d200` is defined in both themes and is a documented step of the neutral ramp (§1):
+
+| | Value | Defined at |
+|---|---|---|
+| Dark | `#c8d2dc` | `index.html:32` |
+| Light | `#2a3540` | `index.html:189` |
+
+`--d200` is safe to use. The ban should be lifted.
+
+### 10.3 `<select>` — resolved in favour of the custom dropdown
+
+The doctrine's Level 3 said *"No native `<select>` — use `.v2-dropdown`"*, while this system's accessibility policy (§7) said *native elements first* and shipped `.ds-select`, a styled native select. Two components claimed the same job.
+
+**Resolved: `.v2-dropdown` is the system's only select control.** `.ds-select` and every native `<select>` have been removed; there are now zero `<select>` elements in the library.
+
+The audit also found that `.v2-dropdown` was a **phantom component** — its anatomy table and code sample documented `.v2-dropdown-btn`, `.v2-dropdown-panel`, `.v2-dropdown-option` and `.dd-label-text`, but none of those classes had CSS and the control had no behaviour at all; the specimen was an inline-styled mockup. The doctrine's Level 3 rule pointed at something that did not exist. It has now been built:
+
+| Supplied | Detail |
+|---|---|
+| Styling | Classes match the previously documented anatomy exactly; the original specimen's visual is unchanged |
+| States | default · hover · focus-visible · open · selected · keyboard-active · disabled · error · full-width (`.roster-dd`) |
+| Keyboard | ↓/↑ open and move · Enter/Space select · Home/End · Esc closes and returns focus · Tab closes · letter typeahead (500ms buffer) |
+| ARIA | `aria-haspopup="listbox"` + `aria-expanded` on the trigger; `role="listbox"` + `aria-activedescendant` on the panel; `role="option"` + `aria-selected` on rows. Missing attributes are normalised at load |
+| Forms | Optional `input[type=hidden]` receives the value and fires `change`; the wrapper emits a bubbling `dd:change` |
+| Light mode | Panel, hovers and selection tints all flip |
+
+**The tradeoff is now explicit rather than implicit.** A custom listbox gives one appearance on every platform at the cost of re-implementing what the browser used to provide — keyboard, focus, and screen-reader semantics. That work lives in this one component, which is exactly why products must use it rather than rebuild the pattern: a hand-rolled copy will look right and be unusable without a mouse.
+
+### 10.4 Gate violations found and fixed in the library
+
+Found while closing the gaps above; all were pre-existing.
+
+| Violation | Count | Gate | Fix |
+|---|---|---|---|
+| `prefers-reduced-motion` documented as a code sample but **never implemented** | — | L4 + L7 | Real `@media (prefers-reduced-motion: reduce)` block added. Motion that carries meaning (spinners, the toast timer) is frozen rather than removed, so the signal survives |
+| `transition: all` | 12 | L4 | Replaced with explicit property lists |
+| `onclick=""` string attributes | 116 | L4 | Converted to `data-*` attributes with a single delegated listener. Beyond tidiness: inline handlers are blocked by a strict CSP, so markup copied from this page could not previously ship into a CSP-enforcing product |
+| Toast progress bar animating `width` | 1 | L4 | Now `transform: scaleX()` with `transform-origin: left` |
+| `onmouseover`/`onmouseout` inline style writes | 3 | L4 | Replaced with CSS `:hover` (`.icon-btn`, `.lift-demo`) |
+| Native `<select>` elements | 7 | L3 | All migrated to `.v2-dropdown`; `.ds-select` retired. Zero `<select>` elements remain |
+| Duplicated `<!-- END MAIN -->` comment | 1 | — | Removed |
+| Light-mode neutral fill flattening semantic tints on `.conf-badge` and `.audit-ico` | 2 | L1 | Light override scoped with `:not()` so level and status modifiers keep their tint |
+
+### 10.5 Still open
+
+- **Canonical 7-level framework reconciliation** — the doctrine's §8 notes its gate is codified locally and should be reconciled with any canonical FlairsTech definition.
+
+### 10.6 Closed since the audit
+
+- **`--qa-accent`** — withdrawn. Accents are **global**: one `--accent` token re-themed per product (§1). There is no QA-specific accent token, so there was nothing to swap and no Talent collision to resolve. The doctrine's open flag has been retracted.
+- **`.ds-select` vs `.v2-dropdown`** — resolved in favour of the custom dropdown; see §10.3.
