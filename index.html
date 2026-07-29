@@ -3278,6 +3278,304 @@
     :root[data-theme="light"] .cp-passage mark { background: rgba(51,105,255,0.14); }
 
     /* ═══════════════════════════════════════════════
+       TYPE CARDS  (Knowledge v2 · G1)
+
+       Eight templates, one fixed governance row.
+
+       The row that never moves — type · trust · title ·
+       owner · last verified · one action — is the whole
+       point. Someone scanning mixed results must not have
+       to relearn where trust lives per type. Everything
+       between the title and the governance row is the
+       part that varies.
+
+       Type is carried by ICON + LABEL, never colour: a
+       card may be cited inside a host whose accent and
+       palette differ.
+    ═══════════════════════════════════════════════ */
+    .type-card {
+      display: flex; flex-direction: column;
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: var(--r-xl); overflow: hidden; max-width: 420px;
+      transition: border-color var(--t-base), box-shadow var(--t-base);
+    }
+    .type-card:hover { border-color: var(--card-border-hover); box-shadow: var(--shadow-md); }
+
+    /* Head — type identity left, trust right. Fixed across all eight. */
+    .tc-head {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      padding: 12px 14px 0;
+    }
+    .tc-type {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 9.5px; font-weight: 700; letter-spacing: 0.07em;
+      text-transform: uppercase; color: var(--d400);
+    }
+    .tc-type svg { width: 12px; height: 12px; flex-shrink: 0; }
+    .tc-head .trust-state { margin-left: auto; }
+
+    .tc-title {
+      padding: 8px 14px 0; font-size: 13px; font-weight: 700;
+      color: var(--d50); line-height: 1.4;
+    }
+    .tc-summary {
+      padding: 6px 14px 0; font-size: 11.5px; line-height: 1.6; color: var(--d400);
+    }
+
+    /* Body — the only zone that differs by type */
+    .tc-body { padding: 10px 14px 0; display: flex; flex-direction: column; gap: 7px; }
+    .tc-fields { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; align-items: baseline; }
+    .tc-field-label {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.07em;
+      text-transform: uppercase; color: var(--d500); white-space: nowrap;
+    }
+    .tc-field-val { font-size: 11.5px; color: var(--d200); line-height: 1.5; min-width: 0; }
+    .tc-field-val strong { color: var(--d50); font-weight: 700; }
+    .tc-list { display: flex; flex-direction: column; gap: 3px; margin: 0; padding: 0; list-style: none; }
+    .tc-list li { display: flex; gap: 7px; font-size: 11.5px; line-height: 1.5; color: var(--d300); }
+    .tc-list li::before { content: "—"; color: var(--d600); flex-shrink: 0; }
+    .tc-list.is-negative li::before { content: "×"; color: var(--err); }
+    .tc-quote {
+      font-size: 11.5px; line-height: 1.6; color: var(--d200); font-style: italic;
+      padding-left: 9px; border-left: 2px solid var(--card-border);
+    }
+    .tc-tags { display: flex; gap: 5px; flex-wrap: wrap; }
+
+    /* Governance row — fixed position, every template, no exceptions */
+    .tc-gov {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      margin-top: 12px; padding: 9px 14px;
+      border-top: 1px solid var(--hairline); background: rgba(255,255,255,0.02);
+      font-size: 10px; color: var(--d500);
+    }
+    :root[data-theme="light"] .tc-gov { background: rgba(16,24,40,0.02); }
+    .tc-gov strong { color: var(--d300); font-weight: 700; }
+    .tc-gov .tc-gov-sep { color: var(--d700); }
+
+    .tc-action { padding: 10px 14px; border-top: 1px solid var(--hairline); }
+    .tc-action .entry-action { width: 100%; justify-content: center; }
+
+    /* Approval state — a SEPARATE field, deliberately not folded into
+       trust state. Whether it becomes a sixth trust value is an open
+       question; baking it in now would pre-empt that decision. */
+    .tc-approval {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 9px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 2px 8px; border-radius: var(--r-xs); border: 1px solid transparent;
+    }
+    .tc-approval svg { width: 10px; height: 10px; flex-shrink: 0; }
+    .tc-approval.is-approved { background: var(--ok-bg);   color: var(--ok);   border-color: rgba(23,178,106,0.24); }
+    .tc-approval.is-pending  { background: var(--warn-bg); color: var(--warn); border-color: rgba(247,144,9,0.24); }
+    .tc-approval.is-internal { background: rgba(255,255,255,0.05); color: var(--d400); border-color: var(--card-border); }
+
+    /* Compact form (§8.1) — what survives when cited inside a host with
+       far less width. Title, type, trust, one action. Nothing else. */
+    .type-card.is-compact { max-width: 300px; }
+    .type-card.is-compact .tc-body,
+    .type-card.is-compact .tc-summary { display: none; }
+    .type-card.is-compact .tc-head { padding: 10px 12px 0; }
+    .type-card.is-compact .tc-title { padding: 6px 12px 0; font-size: 12px; }
+    .type-card.is-compact .tc-gov { margin-top: 9px; padding: 7px 12px; }
+    .type-card.is-compact .tc-action { padding: 8px 12px; }
+    .type-card.is-compact .tc-action .entry-action { font-size: 11px; padding: 6px 12px; }
+
+    /* ═══════════════════════════════════════════════
+       DOCUMENT VIEWER  (Knowledge v2 · G2)
+
+       Composes what already exists into a reading shell.
+       Trust sits in a FIXED position above the body —
+       the only ordering that helps someone deciding
+       whether to rely on the content before they read it.
+
+       A viewer is not a read-only editor: it is optimised
+       for judging and citing, not changing.
+    ═══════════════════════════════════════════════ */
+    .doc-view {
+      background: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: var(--r-xl); overflow: hidden; max-width: 620px;
+    }
+    .dv-head { padding: 16px 18px 0; }
+    .dv-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 9px; }
+    .dv-meta .trust-state { margin-left: auto; }
+    .dv-title { font-size: 17px; font-weight: 700; color: var(--d50);
+      letter-spacing: -0.01em; line-height: 1.3; margin-bottom: 10px; }
+
+    /* Constant governance chrome */
+    .dv-gov {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px 16px; padding: 11px 18px;
+      border-top: 1px solid var(--hairline); border-bottom: 1px solid var(--hairline);
+      background: rgba(255,255,255,0.02);
+    }
+    :root[data-theme="light"] .dv-gov { background: rgba(16,24,40,0.02); }
+    .dv-gov-item { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .dv-gov-label { font-size: 8.5px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--d500); }
+    .dv-gov-val { font-size: 11.5px; font-weight: 600; color: var(--d100);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dv-gov-val.is-overdue { color: var(--err); }
+
+    /* Exclusion / supersession notice — states the consequence and,
+       critically, where the current version is. Never a silent redirect. */
+    .dv-notice {
+      display: flex; align-items: flex-start; gap: 9px;
+      padding: 11px 18px; font-size: 11.5px; line-height: 1.6;
+      border-bottom: 1px solid var(--hairline);
+    }
+    .dv-notice svg { width: 14px; height: 14px; flex-shrink: 0; margin-top: 1px; }
+    .dv-notice .dv-notice-text { color: var(--d200); }
+    .dv-notice .dv-notice-text strong { color: var(--d50); font-weight: 700; }
+    .dv-notice.is-expired    { background: var(--err-bg);  color: var(--err); }
+    .dv-notice.is-superseded { background: var(--info-bg); color: var(--info); }
+    .dv-notice .dv-notice-link {
+      display: inline-flex; align-items: center; gap: 4px; margin-left: auto;
+      font-family: var(--font-sans); font-size: 11px; font-weight: 700;
+      color: currentColor; background: none; border: none; cursor: pointer;
+      white-space: nowrap; padding: 2px 0; border-bottom: 1px solid transparent;
+      transition: border-color var(--t-fast);
+    }
+    .dv-notice .dv-notice-link:hover { border-bottom-color: currentColor; }
+    .dv-notice .dv-notice-link:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+    .dv-body { padding: 16px 18px; font-size: 13px; line-height: 1.75; color: var(--d200); }
+    .dv-body p { margin: 0 0 12px; }
+    .dv-body p:last-child { margin-bottom: 0; }
+    .dv-body h4 { font-size: 12px; font-weight: 700; color: var(--d50);
+      margin: 16px 0 7px; letter-spacing: 0.01em; }
+
+    /* Relationships — related · superseded-by · contradicts.
+       Named in the object anatomy but absent from the library. */
+    .dv-rel { padding: 0 18px 16px; display: flex; flex-direction: column; gap: 8px; }
+    .dv-rel-group { display: flex; align-items: flex-start; gap: 9px; flex-wrap: wrap; }
+    .dv-rel-label {
+      font-size: 8.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--d500); padding-top: 5px; min-width: 86px; flex-shrink: 0;
+    }
+    .dv-rel-items { display: flex; gap: 6px; flex-wrap: wrap; }
+    .dv-rel-item {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 10px; border-radius: var(--r-pill);
+      background: rgba(255,255,255,0.04); border: 1px solid var(--card-border);
+      font-family: var(--font-sans); font-size: 11px; font-weight: 600; color: var(--d200);
+      cursor: pointer; max-width: 240px;
+      transition: background-color var(--t-fast), border-color var(--t-fast), color var(--t-fast);
+    }
+    .dv-rel-item svg { width: 11px; height: 11px; flex-shrink: 0; opacity: 0.7; }
+    .dv-rel-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .dv-rel-item:hover { background: rgba(255,255,255,0.08); color: var(--d50); }
+    .dv-rel-item:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+    :root[data-theme="light"] .dv-rel-item { background: rgba(16,24,40,0.04); }
+    :root[data-theme="light"] .dv-rel-item:hover { background: rgba(16,24,40,0.08); }
+    /* Contradiction is a finding, not a neighbour — it reads as a problem */
+    .dv-rel-item.is-contradiction { background: var(--err-bg); border-color: rgba(240,68,56,0.28); color: var(--err); }
+    .dv-rel-item.is-contradiction:hover { background: rgba(240,68,56,0.2); color: var(--err); }
+    .dv-rel-item.is-successor { background: var(--ok-bg); border-color: rgba(23,178,106,0.28); color: var(--ok); }
+
+    .dv-actions {
+      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      padding: 12px 18px; border-top: 1px solid var(--hairline);
+      background: rgba(255,255,255,0.02);
+    }
+    :root[data-theme="light"] .dv-actions { background: rgba(16,24,40,0.02); }
+    .dv-actions .dv-actions-end { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+
+    /* ═══════════════════════════════════════════════
+       VERSION HISTORY, COMPARE & RESTORE
+       (Knowledge v2 · G3)
+
+       AI edits are ORDINARY VERSIONS WITH AN AI AUTHOR.
+       There is no parallel AI history — a separate track
+       would let someone review the human history and
+       believe they had seen everything.
+
+       Restore is a consequential write: it changes what
+       every consuming agent answers from. It commits
+       through a structured surface, never a link.
+    ═══════════════════════════════════════════════ */
+    .ver-list { display: flex; flex-direction: column; max-width: 560px; }
+    .ver-item {
+      display: grid; grid-template-columns: 22px 1fr auto; gap: 10px;
+      align-items: start; padding: 10px 0;
+      border-bottom: 1px solid var(--hairline);
+    }
+    .ver-item:last-child { border-bottom: none; }
+    .ver-item.is-current { background: rgba(var(--accent-rgb),0.06); border-radius: var(--r-sm);
+      padding-left: 8px; padding-right: 8px; margin: 0 -8px; }
+    .ver-mark {
+      width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,255,255,0.05); color: var(--d400);
+      font-size: 9px; font-weight: 700;
+    }
+    :root[data-theme="light"] .ver-mark { background: rgba(16,24,40,0.05); }
+    /* AI-authored versions are marked, not segregated */
+    .ver-item.is-ai .ver-mark { background: rgba(0,102,255,0.12); color: var(--ai-text); }
+    .ver-main { min-width: 0; }
+    .ver-label { font-size: 12px; font-weight: 600; color: var(--d100); line-height: 1.45; }
+    .ver-author { font-size: 10.5px; color: var(--d400); margin-top: 2px; }
+    .ver-author strong { color: var(--d300); font-weight: 700; }
+    .ver-side { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .ver-time { font-family: var(--font-mono); font-size: 10px; color: var(--d500); white-space: nowrap; }
+    .ver-tag {
+      font-size: 8.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 2px 7px; border-radius: var(--r-xs);
+      background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(var(--accent-rgb),0.24);
+    }
+
+    /* Comparison — reuses the current/proposed diff shape */
+    .ver-compare { max-width: 620px; border-radius: var(--r-lg); overflow: hidden;
+      border: 1px solid var(--card-border); background: var(--card-bg); }
+    .vc-head {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+      padding: 10px 14px; border-bottom: 1px solid var(--hairline);
+      background: rgba(255,255,255,0.02); font-size: 11px; color: var(--d400);
+    }
+    :root[data-theme="light"] .vc-head { background: rgba(16,24,40,0.02); }
+    .vc-head strong { color: var(--d100); font-weight: 700; }
+    .vc-body {
+      padding: 13px 14px; font-size: 12.5px; line-height: 1.75; color: var(--d200);
+    }
+    .vc-body del { color: var(--err); background: var(--err-bg); text-decoration: line-through;
+      border-radius: 3px; padding: 0 3px; }
+    .vc-body ins { color: var(--ok); background: var(--ok-bg); text-decoration: none;
+      border-radius: 3px; padding: 0 3px; }
+    .vc-stat { display: flex; align-items: center; gap: 12px; margin-left: auto;
+      font-family: var(--font-mono); font-size: 10.5px; }
+    .vc-stat .vc-add { color: var(--ok); }
+    .vc-stat .vc-del { color: var(--err); }
+
+    /* Restore commit surface — states the effect before it runs */
+    .ver-restore {
+      max-width: 620px; padding: 14px; border-radius: var(--r-lg);
+      background: var(--card-bg-raised); border: 1px solid rgba(247,144,9,0.3);
+    }
+    .vr-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 9px;
+      font-size: 12.5px; font-weight: 700; color: var(--d50); }
+    .vr-effect { display: flex; align-items: flex-start; gap: 8px; font-size: 11.5px;
+      line-height: 1.55; color: var(--d300); padding: 3px 0; }
+    .vr-effect svg { width: 12px; height: 12px; flex-shrink: 0; margin-top: 2px; }
+    .vr-effect strong { color: var(--d50); font-weight: 700; }
+    .vr-effect.is-warn svg { color: var(--warn); }
+    .vr-effect.is-ok svg { color: var(--ok); }
+    .vr-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+      margin-top: 12px; padding-top: 11px; border-top: 1px solid var(--hairline); }
+    .vr-actions .vr-note { margin-left: auto; font-size: 10px; color: var(--d500);
+      display: inline-flex; align-items: center; gap: 5px; }
+
+    /* Light-mode semantic darkening */
+    :root[data-theme="light"] .tc-approval.is-approved { color: #0a7a45; }
+    :root[data-theme="light"] .tc-approval.is-pending  { color: #8a5200; }
+    :root[data-theme="light"] .tc-approval.is-internal { background: rgba(16,24,40,0.05); }
+    :root[data-theme="light"] .dv-notice.is-expired    { color: #bf2f26; }
+    :root[data-theme="light"] .dv-notice.is-superseded { color: #036aa3; }
+    :root[data-theme="light"] .dv-rel-item.is-contradiction { color: #bf2f26; }
+    :root[data-theme="light"] .dv-rel-item.is-successor     { color: #0a7a45; }
+    :root[data-theme="light"] .ver-item.is-ai .ver-mark     { color: #1f5fd0; }
+    :root[data-theme="light"] .vc-stat .vc-add { color: #0a7a45; }
+    :root[data-theme="light"] .vc-stat .vc-del { color: #bf2f26; }
+    :root[data-theme="light"] .vr-effect.is-warn svg { color: #8a5200; }
+
+    /* ═══════════════════════════════════════════════
        STATIC STATE HELPERS — force pseudo/hidden states
        so every state renders (and imports to Figma).
        Mirror the real :hover / :focus / .open rules.
@@ -3499,6 +3797,9 @@
     <a class="ds-nav-link" href="#cards"><span class="dot"></span>Cards</a>
     <a class="ds-nav-link" href="#bcard-extended"><span class="dot"></span>Briefing Card — Extended</a>
     <a class="ds-nav-link" href="#bcard-aggregate"><span class="dot"></span>Briefing Card — Aggregate</a>
+    <a class="ds-nav-link" href="#type-cards"><span class="dot"></span>Type Cards</a>
+    <a class="ds-nav-link" href="#doc-view"><span class="dot"></span>Document Viewer</a>
+    <a class="ds-nav-link" href="#version-history"><span class="dot"></span>Version History &amp; Restore</a>
     <a class="ds-nav-link" href="#badges"><span class="dot"></span>Badges &amp; Status</a>
     <a class="ds-nav-link" href="#work-state"><span class="dot"></span>Work State</a>
     <a class="ds-nav-link" href="#trust-state"><span class="dot"></span>Trust State</a>
@@ -4818,6 +5119,453 @@
 
   <div class="ds-callout info">
     An aggregate card still owes everything a briefing item owes: what changed, why it matters, scope, work state, and one classified next step. Being a cluster is not an excuse to skip the conclusion sentence and lead with numbers.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     TYPE CARDS
+══════════════════════════════════════════════ -->
+<div class="ds-section">
+  <span class="ds-section-anchor" id="type-cards"></span>
+  <div class="ds-h2">Type Cards</div>
+  <p class="ds-desc">Eight templates for eight kinds of knowledge object, sharing one fixed governance row. Type changes what a reader needs to see first — a Ticket without its resolution is useless, an ICP without its disqualifiers is misleading, a Success Story without its approval state is a legal exposure. A single template forces every type into the fields of whichever type it was designed around, and the fields that matter most end up in a drawer.</p>
+
+  <div class="ds-callout info">
+    <strong>What never moves.</strong> Type · trust state · title · owner · last verified · one classified action sit in the same position on all eight templates. Someone scanning mixed results must not have to relearn where trust lives per type. Only the zone between the title and the governance row varies.
+  </div>
+
+  <div class="ds-h3">The eight templates</div>
+  <div class="ds-preview">
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px">
+
+      <!-- ARTICLE -->
+      <div class="type-card">
+        <div class="tc-head">
+          <span class="tc-type"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/></svg>Article</span>
+          <span class="trust-state ts-verified" data-trust-state="verified"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>Verified</span>
+        </div>
+        <div class="tc-title">Refund eligibility — EU customers</div>
+        <div class="tc-summary">30-day window from purchase, provided the item has not been activated.</div>
+        <div class="tc-body">
+          <div class="tc-fields">
+            <span class="tc-field-label">Applies to</span><span class="tc-field-val">EU storefront · all plans</span>
+            <span class="tc-field-label">Collection</span><span class="tc-field-val">Policies</span>
+          </div>
+        </div>
+        <div class="tc-gov">Owner <strong>A. Mahfouz</strong><span class="tc-gov-sep">·</span>Verified <strong>14 Jan</strong></div>
+        <div class="tc-action"><button class="entry-action em-direct"><svg class="em-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>Open article</button></div>
+      </div>
+
+      <!-- TICKET -->
+      <div class="type-card">
+        <div class="tc-head">
+          <span class="tc-type"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9V7a2 2 0 012-2h14a2 2 0 012 2v2a2 2 0 000 4v2a2 2 0 01-2 2H5a2 2 0 01-2-2v-2a2 2 0 000-4z"/><path d="M13 5v14"/></svg>Ticket</span>
+          <span class="trust-state ts-unverified" data-trust-state="unverified"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.2 9.3a3 3 0 015.7 1.2c0 2-3 3-3 3"/><path d="M12 17.5h.01"/></svg>Unverified</span>
+        </div>
+        <div class="tc-title">#48120 — Refund declined after activation</div>
+        <div class="tc-body">
+          <div class="tc-fields">
+            <span class="tc-field-label">Requester</span><span class="tc-field-val">Nordwind GmbH</span>
+            <span class="tc-field-label">Status</span><span class="tc-field-val"><span class="tag tag-ok">Resolved</span></span>
+            <span class="tc-field-label">Resolution</span><span class="tc-field-val">Goodwill credit issued; policy exception logged.</span>
+          </div>
+        </div>
+        <div class="tc-gov">Ingested <strong>Zendesk</strong><span class="tc-gov-sep">·</span>Closed <strong>2 Mar</strong></div>
+        <div class="tc-action"><button class="entry-action em-investigate"><svg class="em-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>Investigate pattern</button></div>
+      </div>
+
+      <!-- ICP -->
+      <div class="type-card">
+        <div class="tc-head">
+          <span class="tc-type"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/></svg>ICP</span>
+          <span class="trust-state ts-due" data-trust-state="due"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Due</span>
+        </div>
+        <div class="tc-title">Mid-market BPO — EMEA</div>
+        <div class="tc-body">
+          <div class="tc-fields">
+            <span class="tc-field-label">Segment</span><span class="tc-field-val">200–2,000 seats · outsourced support</span>
+          </div>
+          <ul class="tc-list">
+            <li>Multi-client contact centre operation</li>
+            <li>Existing QA function with named owner</li>
+          </ul>
+          <ul class="tc-list is-negative">
+            <li>Single-client captive centres</li>
+            <li>Under 200 seats — no QA budget</li>
+          </ul>
+        </div>
+        <div class="tc-gov">Owner <strong>Sales Ops</strong><span class="tc-gov-sep">·</span>Verified <strong>9 Feb</strong></div>
+        <div class="tc-action"><button class="entry-action em-review"><svg class="em-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M5 7h14"/><path d="M5 7l-2 6h4z"/><path d="M19 7l-2 6h4z"/></svg>Review fit criteria</button></div>
+      </div>
+
+      <!-- CAMPAIGN -->
+      <div class="type-card">
+        <div class="tc-head">
+          <span class="tc-type"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v2a1 1 0 001 1h2l4 4V6L6 10H4a1 1 0 00-1 1z"/><path d="M16 8.5a4 4 0 010 7"/><path d="M19 6a8 8 0 010 12"/></svg>Campaign</span>
+          <span class="trust-state ts-verified" data-trust-state="verified"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>Verified</span>
+        </div>
+        <div class="tc-title">Q3 — Quality at scale</div>
+        <div class="tc-body">
+          <div class="tc-fields">
+            <span class="tc-field-label">Objective</span><span class="tc-field-val">Pipeline from mid-market BPO</span>
+            <span class="tc-field-label">Audience</span><span class="tc-field-val">QA leads, Ops directors</span>
+            <span class="tc-field-label">Window</span><span class="tc-field-val"><strong>1 Jul – 30 Sep</strong> · active</span>
+          </div>
+          <div class="tc-tags"><span class="tag tag-neutral">6 assets</span><span class="tag tag-neutral">3 landing pages</span></div>
+        </div>
+        <div class="tc-gov">Owner <strong>Marketing</strong><span class="tc-gov-sep">·</span>Verified <strong>28 Jun</strong></div>
+        <div class="tc-action"><button class="entry-action em-direct"><svg class="em-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg>Open campaign</button></div>
+      </div>
+
+      <!-- MARKETING ASSET -->
+      <div class="type-card">
+        <div class="tc-head">
+          <span class="tc-type"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Marketing Asset</span>
+          <span class="trust-state ts-verified" data-trust-state="verified"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>Verified</span>
+        </div>
+        <div class="tc-title">Quality at scale — one-pager</div>
+        <div class="tc-body">
+          <div class="tc-fields">
+            <span class="tc-field-label">Format</span><span class="tc-field-val">PDF · A4 · 2pp</span>
+            <span class="tc-field-label">Usage</span><span class="tc-field-val">External — customer-facing</span>
+            <span class="tc-field-label">Approval</span><span class="tc-field-val"><span class="tc-approval is-approved"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Approved</span></span>
+          </div>
+        </div>
+        <div class="tc-gov">Owner <strong>Brand</strong><span class="tc-gov-sep">·</span>Verified <strong>3 Jul</strong></div>
+        <div class="tc-action"><button class="entry-action em-direct"><svg class="em-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>Download asset</button></div>
+      </div>
+
+      <!-- SUCCESS STORY -->
+      <div class="type-card">
+        <div class="tc-head">
+          <span class="tc-type"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M17 4h3v3a5 5 0 01-5 5H9a5 5 0 01-5-5V4h3"/><path d="M7 4h10v4a5 5 0 01-10 0z"/></svg>Success Story</span>
+          <span class="trust-state ts-verified" data-trust-state="verified"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>Verified</span>
+        </div>
+        <div class="tc-title">Nordwind — 31% faster resolution</div>
+        <div class="tc-body">
+          <div class="tc-fields">
+            <span class="tc-field-label">Customer</span><span class="tc-field-val">Nordwind GmbH · 800 seats</span>
+            <span class="tc-field-label">Outcome</span><span class="tc-field-val"><strong>31%</strong> faster first resolution in 90 days</span>
+            <span class="tc-field-label">Approval</span><span class="tc-field-val"><span class="tc-approval is-pending"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Awaiting customer sign-off</span></span>
+          </div>
+          <div class="tc-quote">“We stopped guessing which conversations to review.”</div>
+        </div>
+        <div class="tc-gov">Owner <strong>Marketing</strong><span class="tc-gov-sep">·</span>Verified <strong>21 Jun</strong></div>
+        <div class="tc-action"><button class="entry-action em-review"><svg class="em-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M5 7h14"/><path d="M5 7l-2 6h4z"/><path d="M19 7l-2 6h4z"/></svg>Review before external use</button></div>
+      </div>
+
+      <!-- BLOG -->
+      <div class="type-card">
+        <div class="tc-head">
+          <span class="tc-type"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>Blog</span>
+          <span class="trust-state ts-due" data-trust-state="due"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Due</span>
+        </div>
+        <div class="tc-title">Why sampling 2% of conversations fails</div>
+        <div class="tc-body">
+          <div class="tc-fields">
+            <span class="tc-field-label">State</span><span class="tc-field-val"><span class="tc-approval is-approved"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Published</span></span>
+            <span class="tc-field-label">Author</span><span class="tc-field-val">N. Wael</span>
+            <span class="tc-field-label">Canonical</span><span class="tc-field-val">aimy.app/blog/sampling-fails</span>
+          </div>
+        </div>
+        <div class="tc-gov">Owner <strong>Content</strong><span class="tc-gov-sep">·</span>Verified <strong>11 Apr</strong></div>
+        <div class="tc-action"><button class="entry-action em-direct"><svg class="em-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>Open post</button></div>
+      </div>
+
+      <!-- WEB PAGE -->
+      <div class="type-card">
+        <div class="tc-head">
+          <span class="tc-type"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 010 18a15 15 0 010-18z"/></svg>Web Page</span>
+          <span class="trust-state ts-expired is-excluded" data-trust-state="expired"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>Expired</span>
+        </div>
+        <div class="tc-title">Pricing — Enterprise tier</div>
+        <div class="tc-body">
+          <div class="tc-fields">
+            <span class="tc-field-label">Source URL</span><span class="tc-field-val">aimy.app/pricing/enterprise</span>
+            <span class="tc-field-label">Last crawl</span><span class="tc-field-val">18 Mar</span>
+            <span class="tc-field-label">Changes</span><span class="tc-field-val"><span class="tag tag-warn">Detected 4 Jul</span></span>
+          </div>
+        </div>
+        <div class="tc-gov">Owner <strong>Unassigned</strong><span class="tc-gov-sep">·</span>Verified <strong>18 Mar</strong></div>
+        <div class="tc-action"><button class="entry-action em-review"><svg class="em-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M5 7h14"/><path d="M5 7l-2 6h4z"/><path d="M19 7l-2 6h4z"/></svg>Re-verify against source</button></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="ds-h3">Compact form — <code>.is-compact</code></div>
+  <p class="ds-desc" style="margin-bottom:14px">What survives when a card is cited inside a host with far less width than the workbench. Title, type, trust state, one action — nothing else. This is a requirement of the template, not a host concern: if the compact form is not designed, the host will improvise one, and trust will be the field it drops.</p>
+
+  <div class="ds-preview">
+    <div class="demo-row" style="gap:12px;align-items:flex-start">
+      <div class="type-card is-compact">
+        <div class="tc-head">
+          <span class="tc-type"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>Article</span>
+          <span class="trust-state ts-verified" data-trust-state="verified"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>Verified</span>
+        </div>
+        <div class="tc-title">Refund eligibility — EU customers</div>
+        <div class="tc-gov">Owner <strong>A. Mahfouz</strong><span class="tc-gov-sep">·</span>Verified <strong>14 Jan</strong></div>
+        <div class="tc-action"><button class="entry-action em-direct" style="font-size:11px">Open article</button></div>
+      </div>
+
+      <div class="type-card is-compact">
+        <div class="tc-head">
+          <span class="tc-type"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 010 18a15 15 0 010-18z"/></svg>Web Page</span>
+          <span class="trust-state ts-expired is-excluded" data-trust-state="expired"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>Expired</span>
+        </div>
+        <div class="tc-title">Pricing — Enterprise tier</div>
+        <div class="tc-gov">Owner <strong>Unassigned</strong><span class="tc-gov-sep">·</span>Verified <strong>18 Mar</strong></div>
+        <div class="tc-action"><button class="entry-action em-review" style="font-size:11px">Re-verify</button></div>
+      </div>
+    </div>
+  </div>
+
+  <table class="ds-table">
+    <thead><tr><th>Zone</th><th>Class</th><th>Varies by type?</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Card</td><td><code>.type-card</code></td><td>No</td><td>Add <code>.is-compact</code> for the embedded form</td></tr>
+      <tr><td>Head</td><td><code>.tc-head</code> / <code>.tc-type</code></td><td>Icon + label only</td><td>Type carried by <strong>icon and label together, never colour</strong>. <code>.trust-state</code> is pushed right and sits in the same place on all eight</td></tr>
+      <tr><td>Title</td><td><code>.tc-title</code></td><td>No</td><td>—</td></tr>
+      <tr><td>Summary</td><td><code>.tc-summary</code></td><td>Optional</td><td>Dropped in the compact form</td></tr>
+      <tr><td>Body</td><td><code>.tc-body</code></td><td><strong>Yes — the only zone that does</strong></td><td>Compose from <code>.tc-fields</code>, <code>.tc-list</code> (<code>.is-negative</code> for disqualifiers), <code>.tc-quote</code>, <code>.tc-tags</code>. Dropped in the compact form</td></tr>
+      <tr><td>Governance row</td><td><code>.tc-gov</code></td><td>No</td><td>Owner + last verified. Fixed position, every template, no exceptions</td></tr>
+      <tr><td>Action</td><td><code>.tc-action</code></td><td>Label only</td><td>Exactly one <code>.entry-action</code>, classified like any other</td></tr>
+      <tr><td>Approval</td><td><code>.tc-approval</code></td><td>3 of 8 types</td><td><code>.is-approved</code> / <code>.is-pending</code> / <code>.is-internal</code></td></tr>
+    </tbody>
+  </table>
+
+  <div class="ds-callout warn">
+    <strong>Approval is a separate field, not a trust value — deliberately.</strong> Approval is not verification: a Success Story can be verified as accurate and still not be cleared for external use. Whether approval becomes a sixth trust value or stays its own field is an <strong>open question</strong>, so <code>.tc-approval</code> is kept outside <code>.trust-state</code> rather than pre-empting that decision. If the ruling makes it a trust value, this field folds in and the templates are unaffected.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     DOCUMENT VIEWER
+══════════════════════════════════════════════ -->
+<div class="ds-section">
+  <span class="ds-section-anchor" id="doc-view"></span>
+  <div class="ds-h2">Document Viewer</div>
+  <p class="ds-desc">The reading shell for any knowledge object. Type-appropriate body, constant governance chrome. <strong>A viewer is not a read-only editor</strong> — it is optimised for judging and citing content rather than changing it, which is why trust sits above the body rather than in a details panel: the only ordering that helps someone decide whether to rely on the content is the one that tells them before they read it.</p>
+
+  <div class="ds-preview">
+    <div class="doc-view">
+      <div class="dv-head">
+        <div class="dv-meta">
+          <span class="tc-type"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>Article</span>
+          <span class="tag tag-neutral">Policies</span>
+          <span class="trust-state ts-expired is-excluded" data-trust-state="expired"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>Expired</span>
+        </div>
+        <div class="dv-title">Refund eligibility — EU customers</div>
+      </div>
+
+      <div class="dv-gov">
+        <div class="dv-gov-item"><span class="dv-gov-label">Owner</span><span class="dv-gov-val">A. Mahfouz</span></div>
+        <div class="dv-gov-item"><span class="dv-gov-label">Last verified</span><span class="dv-gov-val">14 Jan 2026</span></div>
+        <div class="dv-gov-item"><span class="dv-gov-label">Review due</span><span class="dv-gov-val is-overdue">102 days ago</span></div>
+        <div class="dv-gov-item"><span class="dv-gov-label">Source</span><span class="dv-gov-val">Confluence · Policies</span></div>
+      </div>
+
+      <div class="dv-notice is-expired">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>
+        <span class="dv-notice-text"><strong>Excluded from answers.</strong> This content is past its review date and AiMY will not ground answers in it. It remains readable — exclusion governs retrieval, not human access.</span>
+        <button class="dv-notice-link">Request verification →</button>
+      </div>
+
+      <div class="dv-body">
+        <p>Customers who purchased through the EU storefront may request a full refund within <strong>30 days</strong> of purchase, provided the item has not been activated.</p>
+        <h4>Exceptions</h4>
+        <p>Activated products are handled case by case. Where a fault is demonstrated, the 30-day window does not apply and the standard warranty process takes over.</p>
+      </div>
+
+      <div class="dv-rel">
+        <div class="dv-rel-group">
+          <span class="dv-rel-label">Related</span>
+          <span class="dv-rel-items">
+            <button class="dv-rel-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg><span>Warranty process — EU</span></button>
+            <button class="dv-rel-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/></svg><span>Returns FAQ</span></button>
+          </span>
+        </div>
+        <div class="dv-rel-group">
+          <span class="dv-rel-label">Contradicts</span>
+          <span class="dv-rel-items">
+            <button class="dv-rel-item is-contradiction"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg><span>Returns FAQ — activated items</span></button>
+          </span>
+        </div>
+      </div>
+
+      <div class="dv-actions">
+        <button class="entry-action em-review" style="font-size:11px;padding:6px 12px">
+          <svg class="em-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M5 7h14"/><path d="M5 7l-2 6h4z"/><path d="M19 7l-2 6h4z"/></svg>
+          Verify now
+        </button>
+        <button class="btn btn-ghost btn-sm">Edit</button>
+        <span class="dv-actions-end">
+          <button class="cite-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>Report a problem</button>
+          <button class="cite-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Cite</button>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-h3">Superseded — resolves to its successor</div>
+  <p class="ds-desc" style="margin-bottom:14px">Someone who followed a link to an old version needs to know where the current one is. A silent redirect hides that they were looking at something outdated; showing the old content with the relationship stated does not.</p>
+
+  <div class="ds-preview">
+    <div class="doc-view">
+      <div class="dv-head">
+        <div class="dv-meta">
+          <span class="tc-type"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><path d="M14 2v6h6"/></svg>Article</span>
+          <span class="trust-state ts-superseded is-excluded" data-trust-state="superseded"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h13"/><path d="M13 6l6 6-6 6"/></svg>Superseded</span>
+        </div>
+        <div class="dv-title">Refund eligibility — EU (2024 policy)</div>
+      </div>
+      <div class="dv-notice is-superseded">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h13"/><path d="M13 6l6 6-6 6"/></svg>
+        <span class="dv-notice-text"><strong>Replaced 12 Mar 2026.</strong> You are reading a superseded version. It is kept for reference and is not used to answer questions.</span>
+        <button class="dv-notice-link">Go to current version →</button>
+      </div>
+      <div class="dv-body">
+        <p style="opacity:0.7">Customers who purchased through the EU storefront may request a full refund within <strong>14 days</strong> of purchase…</p>
+      </div>
+      <div class="dv-rel">
+        <div class="dv-rel-group">
+          <span class="dv-rel-label">Superseded by</span>
+          <span class="dv-rel-items">
+            <button class="dv-rel-item is-successor"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg><span>Refund eligibility — EU customers</span></button>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <table class="ds-table">
+    <thead><tr><th>Zone</th><th>Class</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Shell</td><td><code>.doc-view</code></td><td>Composes existing primitives — it adds a layout, not a new visual language</td></tr>
+      <tr><td>Head</td><td><code>.dv-head</code> / <code>.dv-meta</code> / <code>.dv-title</code></td><td>Type, collection, and <code>.trust-state</code> <strong>above the body</strong>. Fixed position across all eight types</td></tr>
+      <tr><td>Governance</td><td><code>.dv-gov</code> / <code>.dv-gov-item</code></td><td>Owner · last verified · review due · source. Constant regardless of type. <code>.is-overdue</code> on a lapsed date</td></tr>
+      <tr><td>Notice</td><td><code>.dv-notice.is-expired</code> / <code>.is-superseded</code></td><td>States the retrieval consequence <em>and</em> the route out of it. Required whenever trust state is an excluded value</td></tr>
+      <tr><td>Body</td><td><code>.dv-body</code></td><td>The type-appropriate slot — the only zone that varies</td></tr>
+      <tr><td>Relationships</td><td><code>.dv-rel</code> / <code>.dv-rel-item</code></td><td>Related · superseded-by · contradicts. <code>.is-contradiction</code> reads as a finding, <code>.is-successor</code> as the way forward</td></tr>
+      <tr><td>Actions</td><td><code>.dv-actions</code></td><td>Verify, edit, and the <strong>correction entry point</strong> — the viewer is where a reader who spots a problem starts the loop</td></tr>
+    </tbody>
+  </table>
+
+  <div class="ds-callout info">
+    <strong>Expired and superseded content stays viewable.</strong> Exclusion governs retrieval, not human access. Hiding lapsed content would make the corpus look healthier than it is and strand anyone who followed a link to it.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     VERSION HISTORY & RESTORE
+══════════════════════════════════════════════ -->
+<div class="ds-section">
+  <span class="ds-section-anchor" id="version-history"></span>
+  <div class="ds-h2">Version History &amp; Restore</div>
+  <p class="ds-desc">Where the correction loop terminates and where AI edits become reversible. Two rules shape the component: <strong>AI edits are ordinary versions with an AI author</strong>, and <strong>restore is a consequential write</strong>.</p>
+
+  <div class="ds-callout err">
+    <strong>No parallel AI history.</strong> A separate track for AI edits lets someone review the human history and believe they have seen everything. AiMY's versions sit in the same list, marked by author — the same way the audit trail already refuses to disguise AiMY's actions as the user's.
+  </div>
+
+  <div class="ds-h3">History</div>
+  <div class="ds-preview">
+    <div class="ver-list">
+      <div class="ver-item is-current">
+        <span class="ver-mark">v7</span>
+        <div class="ver-main">
+          <div class="ver-label">Clarified the activation exception</div>
+          <div class="ver-author"><strong>N. Wael</strong> · edited in the document editor</div>
+        </div>
+        <div class="ver-side"><span class="ver-tag">Current</span><span class="ver-time">14:06</span></div>
+      </div>
+      <div class="ver-item is-ai">
+        <span class="ver-mark"><svg width="10" height="11" viewBox="0 0 18 20"><use href="#aimy-logo-small"/></svg></span>
+        <div class="ver-main">
+          <div class="ver-label">Applied March policy change to the refund window</div>
+          <div class="ver-author"><strong>AiMY</strong> · accepted by N. Wael</div>
+        </div>
+        <div class="ver-side"><span class="ver-time">Yest · 17:20</span></div>
+      </div>
+      <div class="ver-item">
+        <span class="ver-mark">v5</span>
+        <div class="ver-main">
+          <div class="ver-label">Re-verified without changes</div>
+          <div class="ver-author"><strong>A. Mahfouz</strong> · verification only</div>
+        </div>
+        <div class="ver-side"><span class="ver-time">14 Jan</span></div>
+      </div>
+      <div class="ver-item is-ai">
+        <span class="ver-mark"><svg width="10" height="11" viewBox="0 0 18 20"><use href="#aimy-logo-small"/></svg></span>
+        <div class="ver-main">
+          <div class="ver-label">Restructured exceptions into a sub-heading</div>
+          <div class="ver-author"><strong>AiMY</strong> · accepted by A. Mahfouz</div>
+        </div>
+        <div class="ver-side"><span class="ver-time">3 Jan</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-h3">Comparison</div>
+  <div class="ds-preview">
+    <div class="ver-compare">
+      <div class="vc-head">
+        Comparing <strong>v6</strong> → <strong>v7</strong>
+        <span class="vc-stat"><span class="vc-add">+2</span><span class="vc-del">−1</span></span>
+      </div>
+      <div class="vc-body">
+        Customers who purchased through the EU storefront may request a full refund within <del>14 days</del> <ins>30 days</ins> of purchase, provided the item has not been activated. <ins>Where a fault is demonstrated, the window does not apply and the standard warranty process takes over.</ins>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-h3">Restore — a commit surface, not a link</div>
+  <p class="ds-desc" style="margin-bottom:14px">Restoring changes what the corpus serves, and therefore what every consuming agent answers from. It states its effect before it runs.</p>
+
+  <div class="ds-preview">
+    <div class="ver-restore">
+      <div class="vr-head">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--warn)"><path d="M3 3v6h6"/><path d="M3.5 13a9 9 0 106-8.5L3 9"/></svg>
+        Restore v5 as the current version?
+        <span class="work-state ws-staged" data-work-state="staged" style="margin-left:auto"><span class="ws-dot"></span>Staged</span>
+      </div>
+      <div class="vr-effect is-warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+        <span>Reverts the refund window to <strong>14 days</strong>. Two later edits, including one accepted AiMY change, are rolled back.</span>
+      </div>
+      <div class="vr-effect is-warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg>
+        <span><strong>4 consuming agents</strong> ground answers in this object and will serve the restored content from the next retrieval.</span>
+      </div>
+      <div class="vr-effect is-ok">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+        <span>Restore creates <strong>v8</strong>. Nothing is deleted — v6 and v7 remain in history.</span>
+      </div>
+      <div class="vr-actions">
+        <button class="btn btn-brand btn-sm">Restore as v8</button>
+        <button class="btn btn-ghost btn-sm">Compare first</button>
+        <button class="btn btn-ghost btn-sm">Cancel</button>
+        <span class="vr-note">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Reversible · logged to audit trail
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <table class="ds-table">
+    <thead><tr><th>Element</th><th>Class</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>History</td><td><code>.ver-list</code> / <code>.ver-item</code></td><td><code>.is-current</code> for the live version, <code>.is-ai</code> for AiMY-authored ones — <strong>same list, marked by author</strong></td></tr>
+      <tr><td>Author mark</td><td><code>.ver-mark</code></td><td>Version number, or <code>#aimy-logo-small</code> where AiMY authored it</td></tr>
+      <tr><td>Attribution</td><td><code>.ver-author</code></td><td>AI versions name who accepted them. "AiMY changed it" without "and a person approved it" is an incomplete record</td></tr>
+      <tr><td>Comparison</td><td><code>.ver-compare</code> / <code>.vc-body</code></td><td><code>del</code>/<code>ins</code> diff, same shape as suggestion review and the governance change request</td></tr>
+      <tr><td>Restore</td><td><code>.ver-restore</code> / <code>.vr-effect</code></td><td>Commit surface. Must state what is rolled back, who downstream is affected, and that history is preserved</td></tr>
+    </tbody>
+  </table>
+
+  <div class="ds-callout warn">
+    <strong>Restore is additive.</strong> It creates a new version rather than deleting the ones it supersedes — otherwise restoring is itself an irreversible act, and the audit trail acquires a hole exactly where someone will later need to look.
   </div>
 </div>
 
@@ -9961,7 +10709,7 @@ dd.<span class="ck">addEventListener</span>(<span class="cs">'dd:change'</span>,
           <div class="aimy-float-icon" style="width:32px;height:32px">
             <svg width="16" height="18" viewBox="0 0 18 20"><use href="#aimy-logo-small"/></svg>
           </div>
-          <textarea class="overlay-input" placeholder="Ask AiMY anything…" rows="1" spellcheck="false" autocomplete="off" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();demoSendOverlay()}"></textarea>
+          <textarea class="overlay-input" placeholder="Ask AiMY anything…" rows="1" spellcheck="false" autocomplete="off" data-submit-on-enter></textarea>
           <button class="overlay-send" data-demo-send-overlay aria-label="Send">
             <svg viewBox="0 0 14 14" fill="none" width="14" height="14">
               <path d="M6.12 7.88L12.25 1.75M6.2 8.07l1.533 3.942c.135.347.203.521.3.572a.3.3 0 00.3 0c.097-.05.165-.224.3-.572L12.447 2.16c.122-.314.183-.47.15-.57a.3.3 0 00-.21-.21c-.1-.034-.257.027-.57.15L1.99 5.4c-.347.135-.52.203-.571.3a.3.3 0 000 .3c.05.097.224.165.571.3L5.933 7.8c.07.027.106.041.135.062a.3.3 0 01.062.062c.022.03.036.066.063.135z" stroke="white" stroke-linecap="round" stroke-linejoin="round"/>
@@ -10894,6 +11642,15 @@ function byId(el, attr, fn) {
   const node = document.getElementById(el.getAttribute(attr));
   if (node) fn(node);
 }
+
+/* Enter submits, Shift+Enter newlines — delegated, no inline onkeydown */
+document.addEventListener('keydown', function (e) {
+  if (e.key !== 'Enter' || e.shiftKey) return;
+  const ta = e.target.closest && e.target.closest('[data-submit-on-enter]');
+  if (!ta) return;
+  e.preventDefault();
+  demoSendOverlay();
+});
 
 /* ═══════════════════════════════════════════════════
    DROPDOWN (.v2-dropdown)
