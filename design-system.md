@@ -201,6 +201,18 @@ Components required by the **Knowledge-to-Action Doctrine**. These are not optio
 | **AI unavailable** | `.ai-unavailable(.is-degraded)`, `.aiu-mark/-title/-body/-fallback/-note` | `#ai-unavailable` | §6.7, Level 7 — a designed state. Must say **what still works** and never lose staged work to an outage |
 | **Confirmation ladder** | documentation table (binds rungs to existing components) | `#confirmation-ladder` | §3.1 — confirmation is proportional to consequence; the ladder runs one way only |
 
+### Knowledge v2 Primitives
+
+Built for **AiMY Knowledge v2** (`AiMY_Knowledge_v2_Design_Direction.md`), but none of them are Knowledge-specific — trust state in particular is a shared primitive precisely because it has to render inside other agents' surfaces.
+
+| Component | Classes | Anchor | Requirement |
+|---|---|---|---|
+| **Trust state** | `.trust-state` + `.ts-verified/-due/-expired/-unverified/-superseded`, `.is-excluded`, `data-trust-state`; `.trust-line` | `#trust-state` | Knowledge §6.2 (D1) — required on every knowledge object. **A second axis, independent of work state**: an object can be `drafted` and `expired` at once. Uses semantic tokens only, **never `--accent`**, so it reads identically when cited inside a re-themed host surface |
+| **Answer trust disclosure** | `.trust-disclosure(.has-exclusion)`, `.td-row(.is-ok/.is-warn/.is-err)`, `.td-text`, `.td-action` | `#trust-disclosure` | Knowledge §7.4 — every answer states its grounding. The exclusion case must never be silent, or a governance gap is indistinguishable from a corpus gap |
+| **Citation preview** | `.cite-wrap`, `.cite-preview(.is-open)`, `.cp-head/-title/-passage/-foot/-src`, `.cite-action(.is-flag/.is-flagged)`, `.cite.is-flagged/.is-excluded` | `#cite-preview` | Knowledge §7.3, §7.5 (D2) — verification rung 3, the one carrying the most traffic. Opens on hover **and** `:focus-within`; feedback is captured **per citation**, not per answer |
+| **Set-scope operations** | `.set-scope-bar`, `.ss-count/-num/-scope/-actions/-clear`, `.ss-preview`, `.ss-effect(.is-ok/.is-warn/.is-skip)` | `#set-scope` | Knowledge §4 (D3) — bulk work over a filtered collection. The scope statement and the skip line are both mandatory: a bulk op that silently no-ops on part of its selection reports success the user has no reason to distrust |
+| **Aggregate briefing card** | `.bcard.is-aggregate`, `.agg-summary/-stat`, `.agg-list/-row/-label/-val/-bar/-more` | `#bcard-aggregate` | Knowledge §9.3 block 3 (D4) — a briefing item whose subject is a cluster, not a record. `.agg-more` is required when the list is truncated, or a broad problem reads as a narrow one |
+
 ---
 
 ## 6. States
@@ -321,12 +333,30 @@ Found while closing the gaps above; all were pre-existing.
 | Native `<select>` elements | 7 | L3 | All migrated to `.v2-dropdown`; `.ds-select` retired. Zero `<select>` elements remain |
 | Duplicated `<!-- END MAIN -->` comment | 1 | — | Removed |
 | Light-mode neutral fill flattening semantic tints on `.conf-badge` and `.audit-ico` | 2 | L1 | Light override scoped with `:not()` so level and status modifiers keep their tint |
+| `.progress-bar-fill` animating `width` at **600ms** | 1 | L4 | Now `transform: scaleX(var(--fill))` with `transform-origin: left`, 300ms. **Breaking change** — set the level with `--fill` (0–1), not `style="width:%"`. The five in-page usages and the code sample were migrated |
+| `.score-ring-fill` transitioning `stroke-dashoffset` at **800ms** | 1 | L4 | Reduced to `--t-slow` (300ms). `stroke-dashoffset` is retained — it is the only way to draw an SVG arc — but the ceiling still applies |
+| `.ds-switch .thumb` animating `left` | 1 | L4 | Now `transform: translateX()`; `left` relayouts, `transform` composites |
 
 ### 10.5 Still open
 
 - **Canonical 7-level framework reconciliation** — the doctrine's §8 notes its gate is codified locally and should be reconciled with any canonical FlairsTech definition.
 
-### 10.6 Closed since the audit
+### 10.6 AiMY Knowledge v2 — open dependency register
+
+Against `AiMY_Knowledge_v2_Design_Direction.md` §12. Every component binding in that document's §9.4 resolved on audit **except trust state**, which the document itself flagged.
+
+| Dep | Status | Resolution |
+|---|---|---|
+| **D1 — Trust state primitive**<br>*blocks the card design and the briefing* | ✅ **Built** | `#trust-state` — five values, `data-trust-state`, `.is-excluded` for the retrieval consequence. Built as a **shared** primitive with semantic tokens only and no `--accent` dependency, per Knowledge §1.1/§8.1. The §7.4 answer-level disclosure ships alongside it at `#trust-disclosure` — it was an unnumbered requirement with no component |
+| **D2 — Citation hover preview + per-citation feedback**<br>*blocks the answer surface* | ✅ **Built** | `#cite-preview` — the intermediate verification rung. Rungs 1 (`.cite`) and 2 (`.source-list`) already existed; rung 4 is navigation. Preview opens on hover **and** focus, and per-citation flagging routes into the correction loop rather than terminating in a rating |
+| **D3 — Set-scope AI operations**<br>*blocks Library bulk curation* | ✅ **Built** | `#set-scope` — selection bar with a mandatory scope statement, effect preview including skips, and explicit binding to the confirmation ladder rungs |
+| **D4 — Coverage-gap block shape** | ✅ **Built** | `#bcard-aggregate` — resolved as a `.bcard` variant, as the document anticipated. Same meta row, conclusion, action row and ack/dismiss row; only the evidence zone changes |
+| **D5 — Ownership and usage data granularity** | ⬜ **Not a design-system dependency** | Platform data availability. The design system supplies the blocks; whether composition can rank them per user is a data question. If it degrades to entitlement-only, no component changes — the briefing simply renders a shorter set, and `#states` covers the honest empty case |
+| **D6 — Permission-aware retrieval** | ⬜ **Not a design-system dependency** | Retrieval-layer capability. It does carry one design obligation: where the guarantee does not hold, the limitation must be stated on-screen. Bind that to `.banner.warn` or `.inline-note.warn`, and use `#trust-disclosure` on answers — both exist |
+
+**Not blockers, but worth stating:** the direction document's §7.1 (one input routed on intent) and §7.2 (scope before query) need no new components — `.search-field`, `.cmdk`, `.aimy-float-bar` and `.filter-tray`/`.filter-chip` cover them. §8's embedded-service contract is a *constraint on usage*, not a component: it is satisfied by the answer-surface components carrying no shell dependency, which is why trust state was built accent-free.
+
+### 10.7 Closed since the audit
 
 - **`--qa-accent`** — withdrawn. Accents are **global**: one `--accent` token re-themed per product (§1). There is no QA-specific accent token, so there was nothing to swap and no Talent collision to resolve. The doctrine's open flag has been retracted.
 - **`.ds-select` vs `.v2-dropdown`** — resolved in favour of the custom dropdown; see §10.3.

@@ -1048,9 +1048,13 @@
       height: 6px; background: rgba(255,255,255,0.07);
       border-radius: var(--r-pill); overflow: hidden;
     }
+    /* scaleX, not width — a width transition relayouts on every frame.
+       Set the level with `transform: scaleX(0–1)`, not `style="width:%"`. */
     .progress-bar-fill {
-      height: 100%; border-radius: var(--r-pill);
-      transition: width 0.6s var(--ease-out);
+      height: 100%; width: 100%; border-radius: var(--r-pill);
+      transform-origin: left center;
+      transform: scaleX(var(--fill, 1));
+      transition: transform var(--t-slow) var(--ease-out);
     }
     .progress-bar-fill.ok   { background: var(--ok); }
     .progress-bar-fill.warn { background: var(--warn); }
@@ -1072,8 +1076,10 @@
     .score-ring { position: relative; display: inline-flex; }
     .score-ring svg { transform: rotate(-90deg); }
     .score-ring-track { fill: none; stroke: rgba(255,255,255,0.07); }
+    /* stroke-dashoffset is the only way to draw an SVG arc, but the
+       300ms ceiling still applies — 800ms read as sluggish. */
     .score-ring-fill  { fill: none; stroke-linecap: round;
-      transition: stroke-dashoffset 0.8s var(--ease-out);
+      transition: stroke-dashoffset var(--t-slow) var(--ease-out);
     }
     .score-ring-fill.ok   { stroke: var(--ok); }
     .score-ring-fill.warn { stroke: var(--warn); }
@@ -1822,11 +1828,13 @@
     .ds-switch .track { width: 40px; height: 22px; border-radius: var(--r-pill);
       background: var(--card-bg-raised); border: 1px solid var(--card-border);
       transition: background var(--t-base), border-color var(--t-base); flex-shrink: 0; }
-    .ds-switch .thumb { position: absolute; top: 50%; left: 3px; transform: translateY(-50%);
+    /* translateX, not left — `left` relayouts; transform composites. */
+    .ds-switch .thumb { position: absolute; top: 50%; left: 3px;
+      transform: translateY(-50%) translateX(0);
       width: 16px; height: 16px; border-radius: 50%; background: var(--d400);
-      transition: left var(--t-base) var(--ease-spring), background var(--t-base); }
+      transition: transform var(--t-base) var(--ease-spring), background-color var(--t-base); }
     .ds-switch input:checked + .track { background: var(--accent); border-color: transparent; }
-    .ds-switch input:checked + .track .thumb { left: 21px; background: #fff; }
+    .ds-switch input:checked + .track .thumb { transform: translateY(-50%) translateX(18px); background: #fff; }
     .ds-switch input:focus-visible + .track { box-shadow: 0 0 0 3px var(--accent-glow); }
 
     /* ── Checkbox & radio ── */
@@ -3017,6 +3025,259 @@
     :root[data-theme="light"] .ws-track .ws-step .ws-dot { background: var(--d700); }
 
     /* ═══════════════════════════════════════════════
+       TRUST STATE  (Knowledge v2 · D1)
+
+       A SECOND, INDEPENDENT AXIS from work state.
+       Work state = what AiMY has done with an item.
+       Trust state = whether the content can be relied on.
+       An object can be `drafted` and `expired` at once.
+
+       Read differently on purpose: work state carries a
+       DOT, trust state carries an ICON. When both sit in
+       one meta row they must not look like two halves of
+       the same field.
+
+       PORTABLE BY CONSTRUCTION: semantic tokens only,
+       never --accent. This renders inside other agents'
+       surfaces which re-theme the accent, and an expired
+       card must read as expired everywhere it is cited.
+    ═══════════════════════════════════════════════ */
+    .trust-state {
+      display: inline-flex; align-items: center; gap: 5px;
+      font-size: 9px; font-weight: 700; padding: 3px 9px 3px 7px;
+      border-radius: var(--r-xs); letter-spacing: 0.06em;
+      text-transform: uppercase; white-space: nowrap; vertical-align: middle;
+      border: 1px solid transparent;
+    }
+    .trust-state svg { width: 11px; height: 11px; flex-shrink: 0; }
+    .ts-verified    { background: var(--ok-bg);   color: var(--ok);   border-color: rgba(23,178,106,0.24); }
+    .ts-due         { background: var(--warn-bg); color: var(--warn); border-color: rgba(247,144,9,0.24); }
+    .ts-expired     { background: var(--err-bg);  color: var(--err);  border-color: rgba(240,68,56,0.32); }
+    .ts-unverified  { background: rgba(255,255,255,0.05); color: var(--d400); border-color: var(--card-border); }
+    .ts-superseded  { background: var(--info-bg); color: var(--info); border-color: rgba(14,165,233,0.24); }
+
+    /* Excluded from retrieval — the consequence must be visible on the badge
+       itself, not only in a tooltip. Solid border + inset rule reads as "cut off". */
+    .trust-state.is-excluded { border-style: solid; border-width: 1px; padding-right: 7px; }
+    .trust-state.is-excluded::after {
+      content: "NOT IN ANSWERS";
+      font-size: 8px; letter-spacing: 0.06em; opacity: 0.75;
+      padding-left: 6px; margin-left: 1px; border-left: 1px solid currentColor;
+    }
+
+    /* Object-level trust line — badge plus the dates that justify it */
+    .trust-line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 10.5px; color: var(--d500); }
+    .trust-line .trust-meta { display: inline-flex; align-items: center; gap: 5px; }
+    .trust-line .trust-meta strong { color: var(--d300); font-weight: 700; }
+
+    /* ── Answer trust disclosure (§7.4) ──
+       Every generated answer states the trust condition of its grounding.
+       The exclusion case is the one that must never be silent: without it a
+       governance gap is indistinguishable from a gap in the corpus. */
+    .trust-disclosure {
+      display: flex; flex-direction: column; gap: 7px;
+      padding: 10px 12px; border-radius: var(--r-md);
+      background: rgba(255,255,255,0.03); border: 1px solid var(--card-border);
+      font-size: 11px; line-height: 1.55; color: var(--d300); max-width: 460px;
+    }
+    .trust-disclosure.has-exclusion { background: var(--warn-bg); border-color: rgba(247,144,9,0.28); }
+    .td-row { display: flex; align-items: flex-start; gap: 8px; }
+    .td-row svg { width: 12px; height: 12px; flex-shrink: 0; margin-top: 2px; }
+    .td-row.is-ok   { color: var(--ok); }
+    .td-row.is-warn { color: var(--warn); }
+    .td-row.is-err  { color: var(--err); }
+    .td-row .td-text { color: var(--d300); }
+    .td-row.is-warn .td-text, .td-row.is-err .td-text { color: var(--d200); }
+    .td-row .td-text strong { color: var(--d50); font-weight: 700; }
+    .td-action {
+      align-self: flex-start; margin-top: 1px;
+      font-family: var(--font-sans); font-size: 10.5px; font-weight: 700;
+      color: var(--ai-text); background: none; border: none; cursor: pointer;
+      padding: 2px 0; border-bottom: 1px solid transparent;
+      transition: border-color var(--t-fast), color var(--t-fast);
+    }
+    .td-action:hover { border-bottom-color: currentColor; }
+    .td-action:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+    /* ═══════════════════════════════════════════════
+       CITATION PREVIEW & PER-CITATION FEEDBACK
+       (Knowledge v2 · D2)
+
+       The intermediate verification rung. Rungs 1 (inline
+       marker) and 4 (full source) already existed; this is
+       the one that carries most verification traffic.
+
+       Focus-driven, not hover-only — a preview reachable
+       only by mouse is not a verification affordance.
+    ═══════════════════════════════════════════════ */
+    .cite-wrap { position: relative; display: inline-block; }
+    .cite-wrap > .cite { cursor: pointer; }
+    .cite-wrap > .cite:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+    .cite-preview {
+      position: absolute; bottom: calc(100% + 8px); left: 50%;
+      transform: translateX(-50%) translateY(3px);
+      width: 320px; max-width: 84vw; z-index: 300;
+      background: var(--panel-bg); border: 1px solid var(--glass-border);
+      border-radius: var(--r-lg); box-shadow: var(--shadow-xl);
+      backdrop-filter: blur(12px);
+      padding: 11px 12px; text-align: left;
+      opacity: 0; visibility: hidden; pointer-events: none;
+      transition: opacity var(--t-fast), transform var(--t-fast), visibility var(--t-fast);
+    }
+    .cite-wrap:hover > .cite-preview,
+    .cite-wrap:focus-within > .cite-preview,
+    .cite-preview.is-open {
+      opacity: 1; visibility: visible; pointer-events: auto;
+      transform: translateX(-50%) translateY(0);
+    }
+    .cp-head { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin-bottom: 7px; }
+    .cp-title { font-size: 11.5px; font-weight: 700; color: var(--d50); line-height: 1.4;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 175px; }
+    .cp-head .trust-state { margin-left: auto; }
+    /* The cited passage, shown in context — the surrounding text is dimmed
+       so the quoted span is locatable at a glance. */
+    .cp-passage {
+      font-size: 11.5px; line-height: 1.65; color: var(--d500);
+      max-height: 96px; overflow: hidden; position: relative;
+      padding-left: 9px; border-left: 2px solid var(--card-border);
+    }
+    .cp-passage mark {
+      background: rgba(51,105,255,0.16); color: var(--d50);
+      border-radius: 3px; padding: 0 2px; font-weight: 600;
+    }
+    .cp-foot { display: flex; align-items: center; gap: 6px; margin-top: 9px;
+      padding-top: 8px; border-top: 1px solid var(--hairline); }
+    .cp-src { font-size: 10px; color: var(--d500); margin-right: auto;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .cite-action {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-family: var(--font-sans); font-size: 10px; font-weight: 700;
+      padding: 4px 8px; border-radius: var(--r-sm); cursor: pointer;
+      background: rgba(255,255,255,0.05); border: 1px solid var(--card-border);
+      color: var(--d300); white-space: nowrap;
+      transition: background-color var(--t-fast), border-color var(--t-fast), color var(--t-fast);
+    }
+    .cite-action svg { width: 10px; height: 10px; flex-shrink: 0; }
+    .cite-action:hover { background: rgba(255,255,255,0.09); color: var(--d50); }
+    .cite-action:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+    /* Flagging one citation is the highest-signal, most-commonly-lost feedback */
+    .cite-action.is-flag:hover { background: var(--err-bg); border-color: rgba(240,68,56,0.3); color: var(--err); }
+    .cite-action.is-flagged { background: var(--err-bg); border-color: rgba(240,68,56,0.3); color: var(--err); }
+    /* Citation whose source is excluded / flagged reads differently inline */
+    .cite.is-flagged   { background: var(--warn-bg); color: var(--warn); border-color: rgba(247,144,9,0.35); }
+    .cite.is-excluded  { background: var(--err-bg);  color: var(--err);  border-color: rgba(240,68,56,0.35); }
+
+    /* ═══════════════════════════════════════════════
+       SET-SCOPE OPERATIONS  (Knowledge v2 · D3)
+
+       Batch work over a filtered collection. The scope
+       statement is the component's reason for existing:
+       "apply to selection" without saying what the
+       selection IS makes blast radius invisible at the
+       exact moment it matters.
+    ═══════════════════════════════════════════════ */
+    .set-scope-bar {
+      display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+      padding: 10px 14px; border-radius: var(--r-lg);
+      background: var(--card-bg-raised); border: 1px solid rgba(var(--accent-rgb),0.3);
+      box-shadow: var(--shadow-md);
+    }
+    .ss-count {
+      display: inline-flex; align-items: baseline; gap: 5px;
+      font-size: 12px; font-weight: 700; color: var(--d50); flex-shrink: 0;
+    }
+    .ss-count .ss-num { font-size: 15px; letter-spacing: -0.02em; }
+    /* The scope statement — never omit it */
+    .ss-scope { font-size: 11px; color: var(--d400); line-height: 1.5; min-width: 0; }
+    .ss-scope strong { color: var(--d200); font-weight: 700; }
+    .ss-actions { display: flex; align-items: center; gap: 7px; margin-left: auto; flex-wrap: wrap; }
+    .ss-clear {
+      font-family: var(--font-sans); font-size: 10.5px; font-weight: 600;
+      color: var(--d400); background: none; border: none; cursor: pointer; padding: 4px 6px;
+      transition: color var(--t-fast);
+    }
+    .ss-clear:hover { color: var(--d100); }
+    .ss-clear:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+
+    /* Effect preview — what the operation will actually do, before it runs */
+    .ss-preview {
+      margin-top: 10px; padding: 11px 13px; border-radius: var(--r-md);
+      background: rgba(0,0,0,0.16); border: 1px solid var(--card-border);
+    }
+    :root[data-theme="light"] .ss-preview { background: rgba(16,24,40,0.03); }
+    .ss-preview-head {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--d500); margin-bottom: 8px;
+    }
+    .ss-effect { display: flex; align-items: flex-start; gap: 8px; font-size: 11.5px;
+      line-height: 1.55; color: var(--d300); padding: 3px 0; }
+    .ss-effect svg { width: 12px; height: 12px; flex-shrink: 0; margin-top: 2px; }
+    .ss-effect strong { color: var(--d50); font-weight: 700; }
+    .ss-effect.is-warn svg { color: var(--warn); }
+    .ss-effect.is-ok svg   { color: var(--ok); }
+    .ss-effect.is-skip { color: var(--d500); }
+    .ss-effect.is-skip svg { color: var(--d600); }
+
+    /* ═══════════════════════════════════════════════
+       AGGREGATE BRIEFING CARD  (Knowledge v2 · D4)
+
+       A briefing item whose subject is a CLUSTER, not a
+       record. The standard bcard states one conclusion
+       about one thing; this states a distribution across
+       many, so the evidence row is replaced by a ranked
+       contributor list.
+    ═══════════════════════════════════════════════ */
+    .bcard.is-aggregate .agg-list { display: flex; flex-direction: column; gap: 1px; margin-bottom: 12px; }
+    .agg-row {
+      display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 10px;
+      padding: 6px 8px; border-radius: var(--r-sm); position: relative;
+      font-size: 11.5px; color: var(--d200);
+    }
+    .agg-row:hover { background: rgba(255,255,255,0.04); }
+    :root[data-theme="light"] .agg-row:hover { background: rgba(16,24,40,0.04); }
+    .agg-label { position: relative; z-index: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .agg-val { position: relative; z-index: 1; font-size: 11px; font-weight: 700; color: var(--d50);
+      font-variant-numeric: tabular-nums; }
+    .agg-val .agg-unit { font-weight: 600; color: var(--d500); margin-left: 3px; }
+    /* Proportion bar sits behind the row — scaleX so it never animates width */
+    .agg-bar {
+      position: absolute; left: 0; top: 0; bottom: 0; border-radius: var(--r-sm);
+      background: rgba(var(--accent-rgb),0.14); transform-origin: left center;
+      transform: scaleX(var(--agg-share, 0)); width: 100%; z-index: 0;
+    }
+    .agg-more {
+      font-size: 10.5px; font-weight: 600; color: var(--d500);
+      padding: 5px 8px 0;
+    }
+    /* Cluster totals strip */
+    .agg-summary {
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+      padding: 8px 10px; margin-bottom: 10px; border-radius: var(--r-sm);
+      background: rgba(255,255,255,0.03); border: 1px solid var(--card-border);
+    }
+    :root[data-theme="light"] .agg-summary { background: rgba(16,24,40,0.03); }
+    .agg-stat { display: flex; flex-direction: column; gap: 1px; }
+    .agg-stat-val { font-size: 14px; font-weight: 700; color: var(--d50); letter-spacing: -0.02em; }
+    .agg-stat-lbl { font-size: 9px; font-weight: 600; letter-spacing: 0.07em;
+      text-transform: uppercase; color: var(--d500); }
+
+    /* Light-mode semantic darkening (matches the .tag rules) */
+    :root[data-theme="light"] .ts-verified { color: #0a7a45; }
+    :root[data-theme="light"] .ts-due      { color: #8a5200; }
+    :root[data-theme="light"] .ts-expired  { color: #bf2f26; }
+    :root[data-theme="light"] .ts-superseded { color: #036aa3; }
+    :root[data-theme="light"] .ts-unverified { background: rgba(16,24,40,0.05); }
+    :root[data-theme="light"] .td-row.is-ok   { color: #0a7a45; }
+    :root[data-theme="light"] .td-row.is-warn { color: #8a5200; }
+    :root[data-theme="light"] .td-row.is-err  { color: #bf2f26; }
+    :root[data-theme="light"] .td-action      { color: #1f5fd0; }
+    :root[data-theme="light"] .trust-disclosure { background: rgba(16,24,40,0.03); }
+    :root[data-theme="light"] .cite-action    { background: rgba(16,24,40,0.04); }
+    :root[data-theme="light"] .cite-action:hover { background: rgba(16,24,40,0.08); }
+    :root[data-theme="light"] .cp-passage mark { background: rgba(51,105,255,0.14); }
+
+    /* ═══════════════════════════════════════════════
        STATIC STATE HELPERS — force pseudo/hidden states
        so every state renders (and imports to Figma).
        Mirror the real :hover / :focus / .open rules.
@@ -3237,8 +3498,10 @@
     <a class="ds-nav-link" href="#navigation"><span class="dot"></span>Navigation</a>
     <a class="ds-nav-link" href="#cards"><span class="dot"></span>Cards</a>
     <a class="ds-nav-link" href="#bcard-extended"><span class="dot"></span>Briefing Card — Extended</a>
+    <a class="ds-nav-link" href="#bcard-aggregate"><span class="dot"></span>Briefing Card — Aggregate</a>
     <a class="ds-nav-link" href="#badges"><span class="dot"></span>Badges &amp; Status</a>
     <a class="ds-nav-link" href="#work-state"><span class="dot"></span>Work State</a>
+    <a class="ds-nav-link" href="#trust-state"><span class="dot"></span>Trust State</a>
     <a class="ds-nav-link" href="#sc-conf-badge"><span class="dot"></span>Confidence Badge</a>
     <a class="ds-nav-link" href="#chips"><span class="dot"></span>Chips &amp; Filters</a>
     <a class="ds-nav-link" href="#v2-chip"><span class="dot"></span>AiMY Action Chips</a>
@@ -3277,6 +3540,7 @@
     <a class="ds-nav-link" href="#banners"><span class="dot"></span>Banners &amp; Alerts</a>
     <a class="ds-nav-link" href="#datatable"><span class="dot"></span>Data Table</a>
     <a class="ds-nav-link" href="#toolbar"><span class="dot"></span>Toolbar</a>
+    <a class="ds-nav-link" href="#set-scope"><span class="dot"></span>Set-Scope Operations</a>
     <a class="ds-nav-link" href="#split-button"><span class="dot"></span>Split Button</a>
     <a class="ds-nav-link" href="#tree"><span class="dot"></span>Tree View</a>
     <a class="ds-nav-link" href="#cmdk"><span class="dot"></span>Command Palette</a>
@@ -3353,6 +3617,8 @@
     <a class="ds-nav-link" href="#reasoning"><span class="dot"></span>Reasoning Disclosure</a>
     <a class="ds-nav-link" href="#ai-actions"><span class="dot"></span>Response Actions</a>
     <a class="ds-nav-link" href="#citations"><span class="dot"></span>Citations &amp; Sources</a>
+    <a class="ds-nav-link" href="#cite-preview"><span class="dot"></span>Citation Preview</a>
+    <a class="ds-nav-link" href="#trust-disclosure"><span class="dot"></span>Answer Trust Disclosure</a>
     <a class="ds-nav-link" href="#agent-steps"><span class="dot"></span>Agent Steps</a>
     <a class="ds-nav-link" href="#ai-suggestion"><span class="dot"></span>Suggestion Review</a>
     <a class="ds-nav-link" href="#kpihub-cr-card"><span class="dot"></span>Governance Change Request</a>
@@ -4444,6 +4710,118 @@
 </div>
 
 <!-- ══════════════════════════════════════════════
+     BRIEFING CARD — AGGREGATE
+══════════════════════════════════════════════ -->
+<div class="ds-section">
+  <span class="ds-section-anchor" id="bcard-aggregate"></span>
+  <div class="ds-h2">Briefing Card — Aggregate</div>
+  <p class="ds-desc">A briefing item whose subject is a <strong>cluster, not a record</strong>. The standard <a class="link" href="#bcard-extended">briefing card</a> states one conclusion about one thing and backs it with evidence pills; that shape breaks when the finding is a distribution — thirty unanswered questions clustered by topic, failures spread across six sources. Here the evidence row is replaced by a ranked contributor list, because <em>which things and how much each</em> is the finding.</p>
+
+  <div class="ds-preview">
+    <div style="max-width:440px;display:flex;flex-direction:column;gap:12px">
+
+      <!-- coverage gaps -->
+      <div class="bcard is-aggregate" style="background:var(--card-bg);border:1px solid var(--card-border);border-radius:14px;overflow:hidden">
+        <div style="padding:16px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px;flex-wrap:wrap">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--warn);flex-shrink:0;display:inline-block"></span>
+            <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--d400)">Coverage gaps</span>
+            <span class="work-state ws-detected" data-work-state="detected"><span class="ws-dot"></span>Detected</span>
+          </div>
+
+          <p style="font-size:13px;font-weight:600;color:var(--d100);line-height:1.55;margin:0 0 12px">
+            <span style="color:var(--warn);font-weight:700">142 questions</span> went unanswered this week because nothing in the corpus covers them. Four topics account for most of it.
+          </p>
+
+          <div class="agg-summary">
+            <div class="agg-stat"><span class="agg-stat-val">142</span><span class="agg-stat-lbl">Unanswered</span></div>
+            <div class="agg-stat"><span class="agg-stat-val">4</span><span class="agg-stat-lbl">Topics</span></div>
+            <div class="agg-stat"><span class="agg-stat-val">↑ 38%</span><span class="agg-stat-lbl">vs last week</span></div>
+          </div>
+
+          <div class="agg-list">
+            <div class="agg-row"><span class="agg-bar" style="--agg-share:1"></span><span class="agg-label">Refund eligibility — non-EU</span><span class="agg-val">54<span class="agg-unit">asks</span></span></div>
+            <div class="agg-row"><span class="agg-bar" style="--agg-share:0.72"></span><span class="agg-label">Enterprise SSO setup</span><span class="agg-val">39<span class="agg-unit">asks</span></span></div>
+            <div class="agg-row"><span class="agg-bar" style="--agg-share:0.5"></span><span class="agg-label">Data retention windows</span><span class="agg-val">27<span class="agg-unit">asks</span></span></div>
+            <div class="agg-row"><span class="agg-bar" style="--agg-share:0.24"></span><span class="agg-label">Trial-to-paid migration</span><span class="agg-val">13<span class="agg-unit">asks</span></span></div>
+            <div class="agg-more">+ 9 more topics · 9 asks combined</div>
+          </div>
+
+          <div style="height:1px;background:var(--hairline);margin:0 -16px 12px"></div>
+
+          <div style="display:flex;flex-direction:column;gap:12px;align-items:center">
+            <button class="entry-action em-prompt" style="width:100%;justify-content:center">
+              <svg class="em-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              Draft article for top gap
+            </button>
+          </div>
+
+          <div class="bcard-ack-row">
+            <button class="bcard-ack-btn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M20 6L9 17l-5-5"/></svg>
+              Acknowledge
+            </button>
+            <button class="bcard-ack-btn" data-toggle-dismiss>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M18 6L6 18M6 6l12 12"/></svg>
+              Dismiss
+            </button>
+            <div class="bcard-dismiss-picker">
+              <button class="bcard-dismiss-reason">Out of scope</button>
+              <button class="bcard-dismiss-reason">Already planned</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- compact variant: source health -->
+      <div class="bcard is-aggregate p1" style="background:var(--card-bg);border:1px solid rgba(240,68,56,0.22);border-radius:14px;overflow:hidden">
+        <div style="padding:16px">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px;flex-wrap:wrap">
+            <span style="width:8px;height:8px;border-radius:50%;background:var(--err);flex-shrink:0;display:inline-block"></span>
+            <span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.07em;color:var(--d400)">Source health</span>
+            <span class="work-state ws-failed" data-work-state="failed"><span class="ws-dot"></span>Failed</span>
+          </div>
+          <p style="font-size:13px;font-weight:600;color:var(--d100);line-height:1.55;margin:0 0 12px">
+            <span style="color:var(--err);font-weight:700">3 sources</span> stopped syncing. 1,240 cards are now serving content older than their last known state.
+          </p>
+          <div class="agg-list">
+            <div class="agg-row"><span class="agg-bar" style="--agg-share:1;background:rgba(240,68,56,0.14)"></span><span class="agg-label">Confluence — Policies space</span><span class="agg-val">610<span class="agg-unit">cards</span></span></div>
+            <div class="agg-row"><span class="agg-bar" style="--agg-share:0.65;background:rgba(240,68,56,0.14)"></span><span class="agg-label">Zendesk Help Center</span><span class="agg-val">398<span class="agg-unit">cards</span></span></div>
+            <div class="agg-row"><span class="agg-bar" style="--agg-share:0.38;background:rgba(240,68,56,0.14)"></span><span class="agg-label">Notion — Runbooks</span><span class="agg-val">232<span class="agg-unit">cards</span></span></div>
+          </div>
+          <div style="height:1px;background:var(--hairline);margin:0 -16px 12px"></div>
+          <button class="entry-action em-direct" style="width:100%;justify-content:center">
+            <svg class="em-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0115-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 01-15 6.7L3 16"/></svg>
+            Reconnect all 3
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <table class="ds-table">
+    <thead><tr><th>Element</th><th>Class</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Variant</td><td><code>.bcard.is-aggregate</code></td><td>Modifier on the standard briefing card — same meta row, conclusion, action row and ack/dismiss row. Only the evidence zone differs</td></tr>
+      <tr><td>Totals strip</td><td><code>.agg-summary</code> / <code>.agg-stat</code></td><td>Two or three figures at most: the total, the shape of the spread, and the trend. This is not a stat wall</td></tr>
+      <tr><td>Contributor list</td><td><code>.agg-list</code> / <code>.agg-row</code></td><td>Ranked, highest first. Four or five rows — past that the card is a table pretending to be a briefing item</td></tr>
+      <tr><td>Proportion bar</td><td><code>.agg-bar</code></td><td>Set <code>--agg-share</code> from 0–1 relative to the top row. Renders behind the label with <code>transform: scaleX()</code>, never an animated width</td></tr>
+      <tr><td>Remainder</td><td><code>.agg-more</code></td><td><strong>Required when the list is truncated.</strong> A ranked list that hides its tail overstates how concentrated the problem is</td></tr>
+      <tr><td>Action</td><td><code>.entry-action</code></td><td>One action for the cluster, classified like any other. It may act on the whole cluster or on the top contributor — say which in the label</td></tr>
+    </tbody>
+  </table>
+
+  <div class="ds-callout warn">
+    <strong>The tail is part of the finding.</strong> Showing four topics out of thirteen without saying so turns a broad problem into a narrow one and sends the reader to fix the wrong thing. <code>.agg-more</code> is not optional decoration.
+  </div>
+
+  <div class="ds-callout info">
+    An aggregate card still owes everything a briefing item owes: what changed, why it matters, scope, work state, and one classified next step. Being a cluster is not an excuse to skip the conclusion sentence and lead with numbers.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
      BADGES & STATUS
 ══════════════════════════════════════════════ -->
 <div class="ds-section">
@@ -4606,6 +4984,122 @@
 <span class="ct">&lt;span</span> <span class="ck">class</span>=<span class="cs">"work-state ws-completed"</span> <span class="ck">data-work-state</span>=<span class="cs">"completed"</span><span class="ct">&gt;</span>
   <span class="ct">&lt;span</span> <span class="ck">class</span>=<span class="cs">"ws-dot"</span><span class="ct">&gt;&lt;/span&gt;</span>Handled
 <span class="ct">&lt;/span&gt;</span></pre>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     TRUST STATE
+══════════════════════════════════════════════ -->
+<div class="ds-section">
+  <span class="ds-section-anchor" id="trust-state"></span>
+  <div class="ds-h2">Trust State</div>
+  <p class="ds-desc">Whether a piece of content can be relied on — and whether the AI is still allowed to answer from it. A required field on every knowledge object, and the one indicator that must survive leaving its home product: an expired card has to read as expired inside a consuming agent's canvas, inside an embedded panel, anywhere it is cited. A trust indicator that only renders at home is worse than none at all, because it teaches people that no warning means safe.</p>
+
+  <div class="ds-callout warn">
+    <strong>Trust state is not work state.</strong> <a class="link" href="#work-state">Work state</a> says what AiMY has <em>done</em> with an item; trust state says whether the item's content holds. An object can be <code>drafted</code> and <code>expired</code> at the same time — AiMY has proposed an update, and the content currently published is past review. Collapsing the two loses the distinction exactly where it carries the most weight.
+  </div>
+
+  <div class="ds-h3">The five values</div>
+  <div class="ds-preview">
+    <div class="demo-row" style="align-items:center;gap:8px">
+      <span class="trust-state ts-verified" data-trust-state="verified">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+        Verified
+      </span>
+      <span class="trust-state ts-due" data-trust-state="due">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        Due
+      </span>
+      <span class="trust-state ts-expired is-excluded" data-trust-state="expired">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>
+        Expired
+      </span>
+      <span class="trust-state ts-unverified" data-trust-state="unverified">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M9.2 9.3a3 3 0 015.7 1.2c0 2-3 3-3 3"/><path d="M12 17.5h.01"/></svg>
+        Unverified
+      </span>
+      <span class="trust-state ts-superseded is-excluded" data-trust-state="superseded">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h13"/><path d="M13 6l6 6-6 6"/></svg>
+        Superseded
+      </span>
+    </div>
+  </div>
+
+  <table class="ds-table">
+    <thead><tr><th>Value</th><th>Class</th><th>Means</th><th>Retrieval</th></tr></thead>
+    <tbody>
+      <tr><td>verified</td><td><code>.ts-verified</code></td><td>Owner confirmed within cadence</td><td>Available</td></tr>
+      <tr><td>due</td><td><code>.ts-due</code></td><td>Review date approaching</td><td>Available, flagged</td></tr>
+      <tr><td>expired</td><td><code>.ts-expired</code></td><td>Review date passed without confirmation</td><td><strong style="color:var(--err)">Excluded</strong> — add <code>.is-excluded</code></td></tr>
+      <tr><td>unverified</td><td><code>.ts-unverified</code></td><td>Never verified, or ingested without an owner</td><td>Available, flagged prominently</td></tr>
+      <tr><td>superseded</td><td><code>.ts-superseded</code></td><td>Replaced by a newer object</td><td><strong style="color:var(--err)">Excluded</strong> — resolves to successor</td></tr>
+    </tbody>
+  </table>
+
+  <div class="ds-h3">Excluded from answers — <code>.is-excluded</code></div>
+  <p class="ds-desc" style="margin-bottom:14px">Exclusion is a <em>consequence</em>, so it is stated on the badge rather than left to a tooltip. Marking content stale while continuing to serve it produces a marking users correctly learn to ignore; exclusion is what gives the state teeth, and saying so is what keeps it honest.</p>
+
+  <div class="ds-preview">
+    <div class="demo-row" style="align-items:center;gap:12px">
+      <span class="trust-state ts-expired" data-trust-state="expired">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>
+        Expired
+      </span>
+      <span style="font-size:11px;color:var(--d500)">without the modifier — state only</span>
+      <span class="trust-state ts-expired is-excluded" data-trust-state="expired">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>
+        Expired
+      </span>
+      <span style="font-size:11px;color:var(--d500)">with <code>.is-excluded</code> — state and consequence</span>
+    </div>
+  </div>
+
+  <div class="ds-h3">On a knowledge object</div>
+  <p class="ds-desc" style="margin-bottom:14px">Both axes on one card. The dot marks work state, the icon marks trust state — deliberately different shapes so a meta row carrying both does not read as one field split in two.</p>
+
+  <div class="ds-preview">
+    <div style="max-width:440px;background:var(--card-bg);border:1px solid var(--card-border);border-radius:var(--r-2xl);padding:16px">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:9px;flex-wrap:wrap">
+        <span class="tag tag-neutral">Policy</span>
+        <span class="work-state ws-drafted" data-work-state="drafted"><span class="ws-dot"></span>Drafted</span>
+        <span class="trust-state ts-expired is-excluded" data-trust-state="expired" style="margin-left:auto">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>
+          Expired
+        </span>
+      </div>
+      <div style="font-size:13px;font-weight:700;color:var(--d50);margin-bottom:6px">Refund eligibility — EU customers</div>
+      <p style="font-size:11.5px;line-height:1.6;color:var(--d400);margin:0 0 12px">
+        AiMY has drafted an update reflecting the March policy change. The published version is past its review date and is no longer available to answers.
+      </p>
+      <div class="trust-line">
+        <span class="trust-meta">Owner <strong>A. Mahfouz</strong></span>
+        <span>·</span>
+        <span class="trust-meta">Last verified <strong>14 Jan</strong></span>
+        <span>·</span>
+        <span class="trust-meta">Review due <strong style="color:var(--err)">102 days ago</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-callout info">
+    <strong>Portable by construction.</strong> Trust state uses semantic tokens only and <strong>never <code>--accent</code></strong>. Embedded surfaces adopt the consuming agent's accent, so an accent-tinted trust badge would change meaning between products. Type and state are carried by <strong>label and icon together, never colour alone</strong> — both for contrast and because the colour system may differ where the card is cited.
+  </div>
+
+  <div class="ds-code-wrap">
+    <button class="copy-btn" data-copy-code="trust-state-html">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy HTML
+    </button>
+    <pre class="ds-code" id="trust-state-html"><span class="cm">&lt;!-- Canonical value on the attribute; .is-excluded when
+     the state removes the content from retrieval --&gt;</span>
+<span class="ct">&lt;span</span> <span class="ck">class</span>=<span class="cs">"trust-state ts-expired is-excluded"</span>
+      <span class="ck">data-trust-state</span>=<span class="cs">"expired"</span><span class="ct">&gt;</span>
+  <span class="cm">&lt;!-- slashed-circle icon --&gt;</span>
+  Expired
+<span class="ct">&lt;/span&gt;</span>
+
+<span class="cm">&lt;!-- Both axes coexist on one object --&gt;</span>
+<span class="ct">&lt;span</span> <span class="ck">class</span>=<span class="cs">"work-state ws-drafted"</span>  <span class="ck">data-work-state</span>=<span class="cs">"drafted"</span><span class="ct">&gt;</span>…<span class="ct">&lt;/span&gt;</span>
+<span class="ct">&lt;span</span> <span class="ck">class</span>=<span class="cs">"trust-state ts-expired"</span> <span class="ck">data-trust-state</span>=<span class="cs">"expired"</span><span class="ct">&gt;</span>…<span class="ct">&lt;/span&gt;</span></pre>
   </div>
 </div>
 
@@ -5930,7 +6424,7 @@ dd.<span class="ck">addEventListener</span>(<span class="cs">'dd:change'</span>,
           <span class="progress-bar-value" style="color:var(--ok)">84%</span>
         </div>
         <div class="progress-bar-track thick">
-          <div class="progress-bar-fill ok" style="width:84%"></div>
+          <div class="progress-bar-fill ok" style="--fill:0.84"></div>
         </div>
       </div>
 
@@ -5940,7 +6434,7 @@ dd.<span class="ck">addEventListener</span>(<span class="cs">'dd:change'</span>,
           <span class="progress-bar-value" style="color:var(--warn)">68%</span>
         </div>
         <div class="progress-bar-track thick">
-          <div class="progress-bar-fill warn" style="width:68%"></div>
+          <div class="progress-bar-fill warn" style="--fill:0.68"></div>
         </div>
       </div>
 
@@ -5950,7 +6444,7 @@ dd.<span class="ck">addEventListener</span>(<span class="cs">'dd:change'</span>,
           <span class="progress-bar-value" style="color:var(--err)">51%</span>
         </div>
         <div class="progress-bar-track thick">
-          <div class="progress-bar-fill err" style="width:51%"></div>
+          <div class="progress-bar-fill err" style="--fill:0.51"></div>
         </div>
       </div>
 
@@ -5960,7 +6454,7 @@ dd.<span class="ck">addEventListener</span>(<span class="cs">'dd:change'</span>,
           <span class="progress-bar-value" style="color:var(--ok)">91%</span>
         </div>
         <div class="progress-bar-track thick">
-          <div class="progress-bar-fill ok" style="width:91%"></div>
+          <div class="progress-bar-fill ok" style="--fill:0.91"></div>
         </div>
       </div>
 
@@ -5970,7 +6464,7 @@ dd.<span class="ck">addEventListener</span>(<span class="cs">'dd:change'</span>,
           <span class="progress-bar-value" style="color:var(--brand)">76%</span>
         </div>
         <div class="progress-bar-track thick">
-          <div class="progress-bar-fill brand" style="width:76%"></div>
+          <div class="progress-bar-fill brand" style="--fill:0.76"></div>
         </div>
       </div>
 
@@ -6008,7 +6502,8 @@ dd.<span class="ck">addEventListener</span>(<span class="cs">'dd:change'</span>,
     <span class="ct">&lt;span</span> <span class="ck">class</span>=<span class="cs">"progress-bar-value"</span><span class="ct">&gt;</span>84%<span class="ct">&lt;/span&gt;</span>
   <span class="ct">&lt;/div&gt;</span>
   <span class="ct">&lt;div</span> <span class="ck">class</span>=<span class="cs">"progress-bar-track thick"</span><span class="ct">&gt;</span>
-    <span class="ct">&lt;div</span> <span class="ck">class</span>=<span class="cs">"progress-bar-fill ok"</span> <span class="ck">style</span>=<span class="cs">"width:84%"</span><span class="ct">&gt;&lt;/div&gt;</span>
+    <span class="cm">&lt;!-- Level is set with --fill (0–1), never width --&gt;</span>
+    <span class="ct">&lt;div</span> <span class="ck">class</span>=<span class="cs">"progress-bar-fill ok"</span> <span class="ck">style</span>=<span class="cs">"--fill:0.84"</span><span class="ct">&gt;&lt;/div&gt;</span>
   <span class="ct">&lt;/div&gt;</span>
 <span class="ct">&lt;/div&gt;</span></pre>
   </div>
@@ -6997,6 +7492,114 @@ dd.<span class="ck">addEventListener</span>(<span class="cs">'dd:change'</span>,
       <div class="toolbar-sep"></div>
       <button class="icon-btn" aria-label="More"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg></button>
     </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     CORE UI — SET-SCOPE OPERATIONS
+══════════════════════════════════════════════ -->
+<div class="ds-section">
+  <span class="ds-section-anchor" id="set-scope"></span>
+  <div class="ds-h2">Set-Scope Operations</div>
+  <p class="ds-desc">Acting on many records at once — bulk verification, reassignment, expiry, retagging. The component exists for one reason: <strong>to state what the selection actually is before anything runs.</strong> "Apply to selected" hides blast radius at the exact moment blast radius is the only thing that matters, and a filtered selection is especially treacherous because the filter, not the user, chose most of what is in it.</p>
+
+  <div class="ds-h3">Selection bar</div>
+  <div class="ds-preview">
+    <div style="display:flex;flex-direction:column;gap:10px;max-width:660px">
+
+      <div class="set-scope-bar">
+        <span class="ss-count"><span class="ss-num">18</span> selected</span>
+        <span class="ss-scope">of <strong>240 cards</strong> · filtered to <strong>Policies</strong>, owner <strong>A. Mahfouz</strong>, trust state <strong>expired</strong></span>
+        <span class="ss-actions">
+          <button class="btn btn-ghost btn-sm">Reassign owner</button>
+          <button class="btn btn-ghost btn-sm">Retag</button>
+          <button class="entry-action em-review" style="font-size:11px;padding:6px 12px">
+            <svg class="em-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18"/><path d="M5 7h14"/><path d="M5 7l-2 6h4z"/><path d="M19 7l-2 6h4z"/></svg>
+            Request verification
+          </button>
+          <button class="ss-clear">Clear</button>
+        </span>
+      </div>
+
+      <div style="font-size:11px;color:var(--d500)">Select-all across a filter selects the <em>filter</em>, not the page. Say which.</div>
+
+      <div class="set-scope-bar">
+        <span class="ss-count"><span class="ss-num">240</span> selected</span>
+        <span class="ss-scope"><strong>Every card matching the current filter</strong>, including <strong>222 not shown on this page</strong>.</span>
+        <span class="ss-actions">
+          <button class="ss-clear">Select only this page (18)</button>
+        </span>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="ds-h3">Effect preview</div>
+  <p class="ds-desc" style="margin-bottom:14px">What the operation will do — including what it will <em>skip</em>. A bulk action that silently no-ops on part of its selection produces a success message the user has no reason to distrust.</p>
+
+  <div class="ds-preview">
+    <div style="max-width:660px">
+      <div class="set-scope-bar">
+        <span class="ss-count"><span class="ss-num">18</span> selected</span>
+        <span class="ss-scope">of <strong>240 cards</strong> · filtered to <strong>Policies</strong>, trust state <strong>expired</strong></span>
+        <span class="ss-actions">
+          <button class="btn btn-brand btn-sm">Request verification</button>
+          <button class="ss-clear">Clear</button>
+        </span>
+      </div>
+
+      <div class="ss-preview">
+        <div class="ss-preview-head">What this will do</div>
+        <div class="ss-effect is-ok">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+          <span>Send a verification request to <strong>6 owners</strong> covering <strong>15 cards</strong>.</span>
+        </div>
+        <div class="ss-effect is-warn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+          <span><strong>2 cards have no owner</strong> and will be routed to the collection lead instead.</span>
+        </div>
+        <div class="ss-effect is-skip">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>
+          <span><strong>1 card is superseded</strong> and will be skipped — its successor is already verified.</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid var(--hairline)">
+          <button class="btn btn-brand btn-sm">Send 15 requests</button>
+          <button class="btn btn-ghost btn-sm">Cancel</button>
+          <span style="margin-left:auto;font-size:10px;color:var(--d500);display:inline-flex;align-items:center;gap:5px">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Reversible for 24h · logged to audit trail
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-h3">Confirmation rung</div>
+  <p class="ds-desc" style="margin-bottom:14px">Set-scope operations are multi-entity by definition, so they start at <a class="link" href="#confirmation-ladder">rung 2</a> and climb with consequence. The primary button names the operation and its count — never "Apply" or "Confirm".</p>
+
+  <table class="ds-table">
+    <thead><tr><th>Operation</th><th>Rung</th><th>Surface</th></tr></thead>
+    <tbody>
+      <tr><td>Retag, add to collection — reversible, no retrieval effect</td><td>2</td><td>Inline confirm in the bar</td></tr>
+      <tr><td>Reassign ownership, request verification</td><td>2</td><td>Effect preview + inline confirm</td></tr>
+      <tr><td>Bulk expire — removes content from answers</td><td>3</td><td>Effect preview + <a class="link" href="#disputes-decision">Decision Zone</a></td></tr>
+      <tr><td>Bulk delete, changing per-agent source exposure</td><td>4</td><td><a class="link" href="#confirm-destructive">Type-to-Confirm</a> + <a class="link" href="#disputes-audit">Audit Trail</a></td></tr>
+    </tbody>
+  </table>
+
+  <table class="ds-table">
+    <thead><tr><th>Element</th><th>Class</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Bar</td><td><code>.set-scope-bar</code></td><td>Appears when a selection exists. Accent-bordered — it is a transient mode, not permanent chrome</td></tr>
+      <tr><td>Count</td><td><code>.ss-count</code> / <code>.ss-num</code></td><td>The raw number, largest element in the bar</td></tr>
+      <tr><td>Scope statement</td><td><code>.ss-scope</code></td><td><strong>Mandatory.</strong> Total, active filters, and whether the selection reaches beyond the visible page</td></tr>
+      <tr><td>Actions</td><td><code>.ss-actions</code></td><td>Operations carry their <a class="link" href="#entry-modes">entry mode</a> like any other action</td></tr>
+      <tr><td>Effect preview</td><td><code>.ss-preview</code> / <code>.ss-effect</code></td><td><code>.is-ok</code> will happen · <code>.is-warn</code> will happen differently than expected · <code>.is-skip</code> will not happen. All three are required where they apply</td></tr>
+    </tbody>
+  </table>
+
+  <div class="ds-callout warn">
+    <strong>Never let a bulk operation report success for work it skipped.</strong> The skip line is not a nicety — it is the difference between "15 requests sent" and a user believing all 18 cards are handled.
   </div>
 </div>
 
@@ -8595,6 +9198,138 @@ dd.<span class="ck">addEventListener</span>(<span class="cs">'dd:change'</span>,
       <div class="source-item"><span class="cite">1</span>Weekly Ops Report — W28<span class="source-domain">reports.aimy.app</span></div>
       <div class="source-item"><span class="cite">2</span>Invoicing rollout postmortem<span class="source-domain">notion.so</span></div>
     </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     AI — CITATION PREVIEW
+══════════════════════════════════════════════ -->
+<div class="ds-section">
+  <span class="ds-section-anchor" id="cite-preview"></span>
+  <div class="ds-h2">Citation Preview</div>
+  <p class="ds-desc">The middle rung of citation depth. Verification is layered so a reader skimming and a reader auditing can use the same answer without either being taxed: <strong>1</strong> inline marker → <strong>2</strong> source list → <strong>3</strong> <em>this</em> — the cited passage in context, without navigating away → <strong>4</strong> full source view. Rung 3 carries the most verification traffic, because it answers "does the source actually say that" at the cost of a hover.</p>
+
+  <div class="ds-preview">
+    <div style="font-size:13px;color:var(--d200);line-height:1.9;max-width:470px;padding-top:120px">
+      Customers in the EU may request a refund within 30 days of purchase<span class="cite-wrap"><span class="cite" tabindex="0" role="button" aria-describedby="cp-1">1</span><span class="cite-preview" id="cp-1" role="tooltip">
+        <span class="cp-head">
+          <span class="cp-title">Refund eligibility — EU</span>
+          <span class="trust-state ts-verified" data-trust-state="verified">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+            Verified
+          </span>
+        </span>
+        <span class="cp-passage" style="display:block">…for orders placed through the EU storefront, <mark>customers may request a full refund within 30 days of purchase</mark>, provided the item has not been activated. Refunds are issued to the original payment method…</span>
+        <span class="cp-foot">
+          <span class="cp-src">policies.aimy.app · §4.2</span>
+          <button class="cite-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>Open source</button>
+          <button class="cite-action is-flag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>Wrong</button>
+        </span>
+      </span></span>, provided the item has not been activated<span class="cite-wrap"><span class="cite is-flagged" tabindex="0" role="button" aria-describedby="cp-2">2</span><span class="cite-preview" id="cp-2" role="tooltip">
+        <span class="cp-head">
+          <span class="cp-title">Returns FAQ</span>
+          <span class="trust-state ts-due" data-trust-state="due">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+            Due
+          </span>
+        </span>
+        <span class="cp-passage" style="display:block">…activated items are handled case by case. <mark>An activated product is generally not eligible for return</mark> unless faulty…</span>
+        <span class="cp-foot">
+          <span class="cp-src">helpdesk.aimy.app</span>
+          <button class="cite-action"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><path d="M15 3h6v6"/><path d="M10 14L21 3"/></svg>Open source</button>
+          <button class="cite-action is-flagged"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>Flagged</button>
+        </span>
+      </span></span>.
+      <div style="font-size:11px;color:var(--d500);margin-top:14px">Hover or focus a citation marker. Both previews are reachable with <kbd class="ds-kbd">Tab</kbd>.</div>
+    </div>
+  </div>
+
+  <table class="ds-table">
+    <thead><tr><th>Element</th><th>Class</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Wrapper</td><td><code>.cite-wrap</code></td><td>Wraps the marker and its preview. <code>position:relative</code></td></tr>
+      <tr><td>Marker</td><td><code>.cite</code></td><td>Needs <code>tabindex="0"</code>, <code>role="button"</code> and <code>aria-describedby</code> pointing at the preview. <code>.is-flagged</code> / <code>.is-excluded</code> when the source is not clean</td></tr>
+      <tr><td>Preview</td><td><code>.cite-preview</code></td><td>Opens on <code>:hover</code> <strong>and</strong> <code>:focus-within</code>. <code>.is-open</code> forces it for specimens. <code>role="tooltip"</code></td></tr>
+      <tr><td>Header</td><td><code>.cp-head</code> / <code>.cp-title</code></td><td>Source title plus its <code>.trust-state</code> — the trust of the <em>source</em> is what makes the citation worth trusting</td></tr>
+      <tr><td>Passage</td><td><code>.cp-passage</code> + <code>&lt;mark&gt;</code></td><td>The quoted span highlighted inside its surrounding text. Context is the point: a quote with no surroundings cannot be judged for cherry-picking</td></tr>
+      <tr><td>Per-citation actions</td><td><code>.cite-action</code></td><td>Open source · flag wrong. <code>.is-flag</code> for the destructive-tint hover, <code>.is-flagged</code> once raised</td></tr>
+    </tbody>
+  </table>
+
+  <div class="ds-callout warn">
+    <strong>Feedback is captured per citation, not per answer.</strong> One bad citation inside an otherwise sound answer is the most actionable signal available and the most commonly discarded — a thumbs-down on the whole answer throws away which part was wrong. Flagging must route into the correction loop (open the source, edit, re-verify, reversible commit), not terminate in a rating.
+  </div>
+
+  <div class="ds-callout info">
+    A preview reachable only by mouse is not a verification affordance. The marker is focusable and the panel opens on <code>:focus-within</code>, so keyboard and screen-reader users get the same rung — which is why <code>aria-describedby</code> is required, not optional.
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     AI — ANSWER TRUST DISCLOSURE
+══════════════════════════════════════════════ -->
+<div class="ds-section">
+  <span class="ds-section-anchor" id="trust-disclosure"></span>
+  <div class="ds-h2">Answer Trust Disclosure</div>
+  <p class="ds-desc">What every generated answer says about its own grounding: whether the sources behind it are verified, whether anything flagged contributed, and — the case that must never be silent — <strong>whether relevant content was withheld because it had expired</strong>. Without that last line a governance gap is indistinguishable from a gap in the corpus, and the user has no way to learn that the answer they need exists but has lapsed.</p>
+
+  <div class="ds-h3">Clean grounding</div>
+  <div class="ds-preview">
+    <div class="trust-disclosure">
+      <div class="td-row is-ok">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+        <span class="td-text">Grounded in <strong>3 verified sources</strong>, all reviewed within cadence.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-h3">Flagged source contributed</div>
+  <div class="ds-preview">
+    <div class="trust-disclosure">
+      <div class="td-row is-warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><path d="M12 9v4M12 17h.01"/></svg>
+        <span class="td-text"><strong>1 of 4 sources is due for review.</strong> Returns FAQ was last verified 84 days ago — treat that part of the answer as provisional.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="ds-h3">Content excluded — the case that must not be silent</div>
+  <div class="ds-preview">
+    <div class="trust-disclosure has-exclusion">
+      <div class="td-row is-err">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M5.6 5.6l12.8 12.8"/></svg>
+        <span class="td-text"><strong>2 relevant sources were excluded</strong> because they are past their review date. This answer is thinner than the corpus can actually support.</span>
+      </div>
+      <div class="td-row is-warn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        <span class="td-text">“Refund eligibility — EU” expired 102 days ago · owner <strong>A. Mahfouz</strong></span>
+      </div>
+      <button class="td-action">Request verification →</button>
+    </div>
+  </div>
+
+  <div class="ds-h3">Scope was narrowed by the user</div>
+  <p class="ds-desc" style="margin-bottom:14px">Scope is set before the query runs, and stays visible throughout the answer — an answer read without knowing its scope is an answer that cannot be judged.</p>
+  <div class="ds-preview">
+    <div class="trust-disclosure">
+      <div class="td-row">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="color:var(--d400)"><path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z"/></svg>
+        <span class="td-text">Scoped to <strong>Policies</strong> · official documentation only · verified content only. <span style="color:var(--d500)">14 sources considered, 3 cited.</span></span>
+      </div>
+    </div>
+  </div>
+
+  <table class="ds-table">
+    <thead><tr><th>Element</th><th>Class</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>Panel</td><td><code>.trust-disclosure</code></td><td>Sits with the answer, not in a drawer. <code>.has-exclusion</code> raises it to a warn surface — exclusion is the one case that earns visual weight</td></tr>
+      <tr><td>Row</td><td><code>.td-row</code> + <code>.is-ok</code> / <code>.is-warn</code> / <code>.is-err</code></td><td>Icon colour carries severity; <code>.td-text</code> stays at reading contrast so the sentence is never tinted into illegibility</td></tr>
+      <tr><td>Next step</td><td><code>.td-action</code></td><td>Required on the exclusion case. A disclosure with no route to fix it is a dead end, and dead ends fail the doctrine</td></tr>
+    </tbody>
+  </table>
+
+  <div class="ds-callout err">
+    <strong>Never mark content stale and keep serving it.</strong> A marking with no consequence is decorative and users correctly learn to ignore it. Exclusion is what makes trust state mean something; this component is what keeps exclusion honest by saying it out loud.
   </div>
 </div>
 
