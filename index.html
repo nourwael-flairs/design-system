@@ -156,6 +156,10 @@
       --ls-wider:   0.08em;
 
       /* ── Motion ── */
+      /* Press-release is the one interaction where 150ms reads as lag: the
+         finger is up before the surface finishes answering. Without a step
+         below --t-fast, every product invents its own value and they differ. */
+      --t-press: 90ms;
       --t-fast: 150ms;
       --t-base: 200ms;
       --t-slow: 300ms;
@@ -367,6 +371,27 @@
       display: flex;
       flex-direction: column;
       min-height: 100vh;
+    }
+
+    /* Form-control reset.
+       Components that omit a background, border, font or colour inherit
+       whatever the UA supplies the moment they are used on the element they
+       should be used on. `.tab` declares no background and no font-family, so
+       on a <button> — the correct element for an interactive tab — buttonface
+       showed through and the label rendered in Arial. `.link` kept the UA's
+       2px outset border on three edges. Both were specimen'd only on <div>/<a>.
+
+       At element specificity (0,0,1) every component class still wins; the
+       only rule this changes is the one that was relying on a UA default it
+       never asked for. */
+    button, [type="button"], [type="submit"], [type="reset"] {
+      background: none;
+      border: 0;
+      padding: 0;
+      font: inherit;
+      color: inherit;
+      -webkit-appearance: none;
+      appearance: none;
     }
 
     *:focus { outline: none; }
@@ -644,6 +669,30 @@
     .ds-callout-icon  { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
 
     /* ── Preview Sandbox ── */
+    /* ── SPECIMEN WIDTHS ──────────────────────────────────────────────
+       These ten components each used to carry a hard max-width in their own
+       rule. The values were chosen for this page's specimen column, but they
+       shipped with the component: inside a real product shell the result was
+       a ragged right edge in every panel — an answer body running to 598px
+       above a trust disclosure that stopped at 460px, type cards refusing to
+       fill their grid column, a document viewer declining the canvas it was
+       given.
+
+       Width is layout, and layout belongs to the consumer. The constraint
+       lives here now, scoped to the documentation preview, so this page looks
+       exactly as it always has and nothing travels into a product — .ds-preview
+       is documentation chrome and is dropped on extraction. */
+    .ds-preview .bcard            { max-width: 300px; }
+    .ds-preview .type-card,
+    .ds-preview .agent-steps      { max-width: 420px; }
+    .ds-preview .source-list,
+    .ds-preview .trust-disclosure { max-width: 460px; }
+    .ds-preview .ai-suggestion,
+    .ds-preview .comment,
+    .ds-preview .msg-bubble       { max-width: 480px; }
+    .ds-preview .ver-list         { max-width: 560px; }
+    .ds-preview .doc-view         { max-width: 620px; }
+
     .ds-preview {
       background: var(--d900); border: 1px solid rgba(255,255,255,0.07);
       border-radius: var(--r-xl); padding: 28px; margin-bottom: 20px;
@@ -771,6 +820,12 @@
     .btn {
       display: inline-flex; align-items: center; gap: 7px;
       font-family: var(--font-sans); font-size: 12px; font-weight: 700;
+      /* Explicit, so height is a property of the button rather than of
+         whatever container it lands in. Without it .btn-sm measured 29px
+         inside a table row and 25px elsewhere — the same class, two heights.
+         Values chosen to reproduce exactly what this page rendered before,
+         measured: 32 / 24 / 37 including padding and border. */
+      line-height: 14px;
       padding: 8px 16px; border-radius: var(--r-md);
       border: 1px solid transparent; cursor: pointer;
       transition: background-color var(--t-fast), border-color var(--t-fast), color var(--t-fast),
@@ -798,10 +853,24 @@
     .btn-accent     { background: var(--accent-dim); color: var(--accent); border-color: rgba(var(--accent-rgb),0.28); }
     .btn-accent:hover     { background: rgba(var(--accent-rgb),0.22); }
 
-    .btn-sm { font-size: 10.5px; padding: 5px 11px; }
-    .btn-lg { font-size: 13px; padding: 10px 20px; }
+    .btn-sm { font-size: 10.5px; line-height: 12px; padding: 5px 11px; }
+    .btn-lg { font-size: 13px; line-height: 15px; padding: 10px 20px; }
     .btn-icon { padding: 8px; }
     .btn:disabled { opacity: 0.38; cursor: not-allowed; }
+
+    /* Press feedback. The library shipped :hover everywhere and :active almost
+       nowhere — .btn.is-active is a static documentation helper, not the real
+       pseudo-state — so each consuming product added its own. One speed, one
+       displacement, defined once. Transform only, so nothing reflows. */
+    .btn:active:not(:disabled),
+    .entry-action:active,
+    .filter-chip:active,
+    .seg-btn:active,
+    .nav-item:active,
+    .tab:active {
+      transform: translateY(1px);
+      transition-duration: var(--t-press);
+    }
 
     /* ═══════════════════════════════════════════════
        CARDS
@@ -820,10 +889,14 @@
     }
 
     /* ── Briefing Card (bcard) ── */
+    /* §1.2.1: the component said radius 16 / padding 14; the #bcard-extended
+       specimen said radius 14 / padding 16 inline. The two were transposed,
+       and the specimen is what everyone has actually looked at. Settled as
+       radius 16 (the component's, via --r-2xl) and padding 16 (the
+       specimen's, which reads better at briefing-grid card widths). */
     .bcard {
       background: var(--card-bg); border-radius: var(--r-2xl);
-      border: 1px solid var(--card-border); padding: 14px;
-      max-width: 300px;
+      border: 1px solid var(--card-border); padding: 16px;
       transition: border-color var(--t-base), transform var(--t-base), box-shadow var(--t-base);
     }
     .bcard:hover { border-color: var(--card-border-hover); transform: translateY(-1px); box-shadow: var(--shadow-md); }
@@ -843,6 +916,37 @@
       font-size: 10px; color: var(--d300); font-weight: 500;
     }
     .evidence-pill .val { font-weight: 700; color: #fff; }
+
+    /* ── Documented aliases (§1.2) ──────────────────────────────────────
+       The #bcard-extended anatomy table and its copy-paste sample name these
+       classes; the stylesheet implemented the same zones under different
+       names. A developer copying the documented sample got an unstyled card
+       and no error — the worst failure mode available, because it looks like
+       their markup is wrong.
+
+       Rather than rewrite the docs and break anyone already following them,
+       the documented names are now real. Both spellings resolve to the same
+       component; the .bcard-* names remain canonical. */
+    .bcard-conclusion { font-size: 12px; font-weight: 600; color: var(--d50); line-height: 1.45; margin: 0 0 10px; }
+    .evidence-row     { display: flex; gap: 5px; flex-wrap: wrap; }
+    .type-label       { font-size: 10px; font-weight: 700; color: var(--d400); letter-spacing: 0.05em; text-transform: uppercase; flex: 1; }
+    .severity-dot     { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; background: var(--d500); }
+    .severity-dot.p1  { background: var(--err); }
+    .severity-dot.p2  { background: var(--warn); }
+    .severity-dot.p3  { background: var(--ok); }
+    .priority-badge {
+      margin-left: auto; flex-shrink: 0;
+      font-size: 9px; font-weight: 700; letter-spacing: 0.03em;
+      padding: 2px 7px; border-radius: var(--r-pill);
+      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: var(--d300);
+    }
+    .priority-badge.p1 { background: var(--err-bg);  border-color: rgba(240,68,56,0.25); color: var(--err); }
+    .priority-badge.p2 { background: var(--warn-bg); border-color: rgba(247,144,9,0.25); color: var(--warn); }
+    .priority-badge.p3 { background: var(--ok-bg);   border-color: rgba(23,178,106,0.25); color: var(--ok); }
+    /* Pass-through: .bcard already carries the padding, so a .bcard-body
+       wrapper must not add a second inset. Documented as a zone, not a box. */
+    .bcard-body   { display: block; }
+    .bcard-action { display: flex; flex-direction: column; gap: 16px; align-items: center; justify-content: space-between; }
     .delta-up   { font-size: 10px; font-weight: 600; color: var(--ok); }
     .delta-down { font-size: 10px; font-weight: 600; color: var(--err); }
 
@@ -1103,9 +1207,20 @@
     }
 
     /* ═══════════════════════════════════════════════
-       COPY UI
+       COPY UI — documentation chrome only
+
+       `.copy-btn` used to be defined here alongside `.ds-copy-btn`, under a
+       banner that reads as documentation. It is not: `.copy-field` embeds a
+       `.copy-btn` in its own anatomy, so a product extracting by banner
+       section dropped it and the field broke — the unstyled SVG expanded to
+       37×37 and inflated the field from 44px to 80px, and the handler went
+       with it, so the button also copied nothing.
+
+       `.copy-btn` now lives with `.copy-field` in the component layer. Only
+       `.ds-copy-btn` — the "Copy code" control on this page's specimens —
+       remains here.
     ═══════════════════════════════════════════════ */
-    .copy-btn, .ds-copy-btn {
+    .ds-copy-btn {
       display: inline-flex; align-items: center; gap: 4px;
       font-family: var(--font-sans); font-size: 10px; font-weight: 700;
       padding: 4px 9px; border-radius: var(--r-sm);
@@ -1114,9 +1229,9 @@
       transition: background-color var(--t-fast), border-color var(--t-fast), color var(--t-fast);
       white-space: nowrap;
     }
-    .copy-btn:hover, .ds-copy-btn:hover { background: rgba(255,255,255,0.1); color: var(--d100); border-color: rgba(255,255,255,0.18); }
-    .copy-btn.copied, .ds-copy-btn.copied { background: var(--ok-bg); border-color: rgba(23,178,106,0.3); color: var(--ok); }
-    .copy-btn svg, .ds-copy-btn svg { width: 11px; height: 11px; flex-shrink: 0; }
+    .ds-copy-btn:hover { background: rgba(255,255,255,0.1); color: var(--d100); border-color: rgba(255,255,255,0.18); }
+    .ds-copy-btn.copied { background: var(--ok-bg); border-color: rgba(23,178,106,0.3); color: var(--ok); }
+    .ds-copy-btn svg { width: 11px; height: 11px; flex-shrink: 0; }
 
     /* Code display is hidden — components document via live demos + a copy button only */
     .ds-code { display: none; }
@@ -1362,9 +1477,15 @@
       background: var(--d900); border-radius: var(--r-xl);
       overflow: hidden;
     }
+    /* z-index: the float bar and the canvas overlay are designed to overlap,
+       and only one order is ever correct — the canvas covers the bar. Both
+       previously shipped at 10, which left paint order decided by DOM order:
+       a coincidence that holds until someone reorders the markup or raises
+       one of them. 200 / 500 are the values the reference implementation
+       arrived at, with room between for product chrome. */
     .aimy-float-wrap {
       position: absolute;
-      bottom: 14px; left: 20px; right: 20px; z-index: 10;
+      bottom: 14px; left: 20px; right: 20px; z-index: 200;
       display: flex; justify-content: center;
       pointer-events: none;
     }
@@ -1406,7 +1527,12 @@
     .float-badge {
       position: absolute; top: -3px; right: -3px;
       min-width: 16px; height: 16px; border-radius: var(--r-pill);
-      background: var(--err); border: 1.5px solid #0f1215;
+      /* Tokenised. This was a literal #0f1215 — a stale snapshot of --body-bg
+         that stopped matching the moment a product changed the token, leaving
+         the badge ringed in a colour nothing else on the page uses. The ring
+         exists to punch the badge out of whatever it sits on, so it has to
+         track that surface. */
+      background: var(--err); border: 1.5px solid var(--body-bg);
       font-size: 9px; font-weight: 800; color: #fff;
       display: flex; align-items: center; justify-content: center;
       padding: 0 3px; letter-spacing: 0.02em;
@@ -1506,7 +1632,7 @@
       background: var(--d900);
     }
     .aimy-overlay {
-      position: absolute; inset: 0; z-index: 10;
+      position: absolute; inset: 0; z-index: 500;   /* above .aimy-float-wrap (200) */
       backdrop-filter: blur(28px) saturate(1.4) brightness(0.85);
       -webkit-backdrop-filter: blur(28px) saturate(1.4) brightness(0.85);
       background: rgba(20,27,34,0.30);
@@ -1584,7 +1710,6 @@
     .msg-bubble {
       padding: 10px 14px; border-radius: var(--r-xl);
       font-size: 13px; font-weight: 500; line-height: 1.55;
-      max-width: 480px;
     }
     .chat-msg.aimy .msg-bubble {
       background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07);
@@ -1642,50 +1767,67 @@
     /* ═══════════════════════════════════════════════
        AIMY TOAST (action confirmation toast)
     ═══════════════════════════════════════════════ */
+    /* This block previously implemented an older toast — bottom-right, green
+       success chip, column layout, horizontal divider, --ok fill over 4s —
+       while the anatomy table below and the published system both described a
+       bottom-CENTRE, AiMY-branded one. A product reading the docs and a
+       product using the CSS got different components. The table is what is
+       published, so the table wins; every value here is quoted from it. */
     .aimy-toast {
-      position: fixed; bottom: 28px; right: 28px; z-index: 9999;
+      position: fixed; bottom: 90px; left: 50%; z-index: 9999;
       min-width: 280px; max-width: 360px;
       background: var(--card-bg-raised); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: var(--r-xl); padding: 14px 16px;
+      border-radius: var(--r-xl); padding: 12px 16px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.04);
-      display: flex; flex-direction: column; gap: 10px;
-      opacity: 0; transform: translateY(10px) scale(0.97);
+      display: flex; flex-direction: row; align-items: center; gap: 12px;
+      overflow: hidden;
+      opacity: 0; visibility: hidden;
+      transform: translateX(-50%) translateY(20px) scale(0.97);
       pointer-events: none;
       transition: opacity 220ms var(--ease-out), transform 220ms var(--ease-out);
     }
-    .aimy-toast.visible { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+    /* visibility, not opacity alone — an opacity-0 toast still takes clicks. */
+    .aimy-toast.visible {
+      opacity: 1; visibility: visible; pointer-events: auto;
+      transform: translateX(-50%) translateY(0) scale(1);
+    }
 
     .aimy-toast-icon {
-      width: 28px; height: 28px; border-radius: var(--r-md); flex-shrink: 0;
+      width: 30px; height: 30px; border-radius: 9px; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
-      background: var(--ok-bg); border: 1px solid rgba(23,178,106,0.2);
+      background: rgba(var(--accent-rgb),0.1);
+      border: 1px solid rgba(var(--accent-rgb),0.2);
     }
-    .aimy-toast-icon svg { width: 14px; height: 14px; stroke: var(--ok); stroke-width: 2.5; }
+    /* The AiMY mark, not a checkmark: the toast confirms that AiMY acted, and
+       it is used for reversible writes as often as for successes. */
+    .aimy-toast-icon svg { width: 13px; height: 15px; stroke: none; }
 
-    .aimy-toast-body { display: flex; align-items: flex-start; gap: 10px; }
-    .aimy-toast-title { font-size: 12px; font-weight: 700; color: var(--d50); margin-bottom: 2px; }
+    .aimy-toast-body { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; flex: 1; }
+    .aimy-toast-title { font-size: 12px; font-weight: 700; color: var(--d50); letter-spacing: -0.005em; }
     .aimy-toast-sub { font-size: 11px; color: var(--d400); line-height: 1.5; }
 
-    .aimy-toast-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 2px 0; }
+    /* Vertical rule separating the message from the undo, not a horizontal
+       one splitting the card in half. */
+    .aimy-toast-divider { width: 1px; height: 28px; flex-shrink: 0; background: rgba(255,255,255,0.06); }
 
     .aimy-toast-undo {
       display: inline-flex; align-items: center; gap: 5px;
-      font-size: 11px; font-weight: 700; color: var(--brand);
+      font-size: 11px; font-weight: 700; color: var(--ai-text);
       cursor: pointer; background: none; border: none; padding: 0;
       font-family: var(--font-sans);
       transition: color var(--t-fast);
     }
-    .aimy-toast-undo:hover { color: #7badff; }
+    .aimy-toast-undo:hover { color: var(--d50); }
 
     .aimy-toast-progress {
-      height: 2px; border-radius: var(--r-pill);
-      background: rgba(255,255,255,0.08); overflow: hidden;
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 2.5px; overflow: hidden;
     }
     .aimy-toast-progress-fill {
-      height: 100%; width: 100%; border-radius: var(--r-pill);
-      background: var(--ok);
+      height: 100%; width: 100%;
+      background: var(--ai);
       transform-origin: left center;
-      animation: toastProgress 4s linear forwards;
+      animation: toastProgress 5s linear forwards;
     }
     /* scaleX, not width — width animation forces layout on every frame */
     @keyframes toastProgress {
@@ -2392,7 +2534,7 @@
     .notif-time { font-size: 10.5px; color: var(--d500); margin-left: auto; flex-shrink: 0; }
 
     /* ── Comment thread ── */
-    .comment { display: flex; gap: 11px; max-width: 480px; }
+    .comment { display: flex; gap: 11px; }
     .comment .comment-body { flex: 1; min-width: 0; }
     .comment-head { display: flex; align-items: baseline; gap: 8px; }
     .comment-author { font-size: 12.5px; font-weight: 700; color: var(--d100); }
@@ -2506,6 +2648,22 @@
     .input-group .field-input:last-child { border-radius: 0 var(--r-md) var(--r-md) 0; }
 
     /* ── Copy field ── */
+    /* Part of .copy-field's anatomy, so it lives in the component layer.
+       The explicit svg size is load-bearing: an SVG with a viewBox and no
+       dimensions expands to fill its container. */
+    .copy-btn {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-family: var(--font-sans); font-size: 10px; font-weight: 700;
+      padding: 4px 9px; border-radius: var(--r-sm);
+      background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+      color: var(--d400); cursor: pointer;
+      transition: background-color var(--t-fast), border-color var(--t-fast), color var(--t-fast);
+      white-space: nowrap;
+    }
+    .copy-btn:hover { background: rgba(255,255,255,0.1); color: var(--d100); border-color: rgba(255,255,255,0.18); }
+    .copy-btn.copied { background: var(--ok-bg); border-color: rgba(23,178,106,0.3); color: var(--ok); }
+    .copy-btn svg { width: 11px; height: 11px; flex-shrink: 0; }
+
     .copy-field { display: flex; align-items: center; gap: 10px; max-width: 420px;
       padding: 9px 9px 9px 13px; background: var(--card-bg-raised);
       border: 1px solid var(--card-border); border-radius: var(--r-md); }
@@ -2624,7 +2782,7 @@
       padding: 0 4px; border-radius: 5px; background: var(--brand-dim); color: var(--brand);
       font-size: 9.5px; font-weight: 700; vertical-align: 2px; margin: 0 2px; cursor: pointer;
       border: 1px solid rgba(51,105,255,0.25); }
-    .source-list { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; max-width: 460px; }
+    .source-list { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
     .source-item { display: flex; align-items: center; gap: 9px; padding: 8px 11px;
       border-radius: var(--r-md); background: var(--card-bg-raised); border: 1px solid var(--card-border);
       font-size: 11.5px; font-weight: 600; color: var(--d200); cursor: pointer; }
@@ -2632,7 +2790,7 @@
     .source-domain { color: var(--d500); margin-left: auto; font-size: 10.5px; font-weight: 500; }
 
     /* ── Agent steps ── */
-    .agent-steps { display: flex; flex-direction: column; max-width: 420px; }
+    .agent-steps { display: flex; flex-direction: column; }
     .agent-step { display: flex; gap: 11px; padding: 6px 0; align-items: flex-start; }
     .agent-step-ico { width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
       display: flex; align-items: center; justify-content: center;
@@ -2646,7 +2804,7 @@
     .agent-step-meta { font-size: 10.5px; color: var(--d500); margin-top: 1px; }
 
     /* ── AI suggestion review ── */
-    .ai-suggestion { max-width: 480px; border: 1px solid rgba(var(--accent-rgb),0.3);
+    .ai-suggestion { border: 1px solid rgba(var(--accent-rgb),0.3);
       border-radius: var(--r-lg); background: var(--accent-dim); overflow: hidden; }
     .ai-suggestion-head { display: flex; align-items: center; gap: 7px; padding: 9px 13px;
       font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); }
@@ -2909,10 +3067,17 @@
       padding: 10px 14px; border-top: 1px solid var(--hairline);
       background: rgba(255,255,255,0.02);
     }
-    .gov-cr-actions .gov-cr-audit-note {
-      margin-left: auto; font-size: 10px; color: var(--d500);
+    /* Stands alone. Any surface that commits a governed write should be able
+       to say the write is logged — a modal footer is where that most often
+       needs saying. Scoped under .gov-cr-actions it received nothing outside
+       that one parent: no display, no gap, no font-size, so the icon jammed
+       against the text at inherited size and read as broken markup. */
+    .gov-cr-audit-note {
+      font-size: 10px; color: var(--d500);
       display: inline-flex; align-items: center; gap: 5px;
     }
+    /* Parent selector kept only for the positional override it actually owns. */
+    .gov-cr-actions .gov-cr-audit-note { margin-left: auto; }
 
     /* ── Decision zone (§3 reviewed action) ── */
     .decision-zone {
@@ -3078,7 +3243,7 @@
       display: flex; flex-direction: column; gap: 7px;
       padding: 10px 12px; border-radius: var(--r-md);
       background: rgba(255,255,255,0.03); border: 1px solid var(--card-border);
-      font-size: 11px; line-height: 1.55; color: var(--d300); max-width: 460px;
+      font-size: 11px; line-height: 1.55; color: var(--d300);
     }
     .trust-disclosure.has-exclusion { background: var(--warn-bg); border-color: rgba(247,144,9,0.28); }
     .td-row { display: flex; align-items: flex-start; gap: 8px; }
@@ -3296,7 +3461,7 @@
     .type-card {
       display: flex; flex-direction: column;
       background: var(--card-bg); border: 1px solid var(--card-border);
-      border-radius: var(--r-xl); overflow: hidden; max-width: 420px;
+      border-radius: var(--r-xl); overflow: hidden;
       transition: border-color var(--t-base), box-shadow var(--t-base);
     }
     .type-card:hover { border-color: var(--card-border-hover); box-shadow: var(--shadow-md); }
@@ -3392,7 +3557,7 @@
     ═══════════════════════════════════════════════ */
     .doc-view {
       background: var(--card-bg); border: 1px solid var(--card-border);
-      border-radius: var(--r-xl); overflow: hidden; max-width: 620px;
+      border-radius: var(--r-xl); overflow: hidden;
     }
     .dv-head { padding: 16px 18px 0; }
     .dv-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 9px; }
@@ -3492,7 +3657,7 @@
        every consuming agent answers from. It commits
        through a structured surface, never a link.
     ═══════════════════════════════════════════════ */
-    .ver-list { display: flex; flex-direction: column; max-width: 560px; }
+    .ver-list { display: flex; flex-direction: column; }
     .ver-item {
       display: grid; grid-template-columns: 22px 1fr auto; gap: 10px;
       align-items: start; padding: 10px 0;
@@ -4766,7 +4931,7 @@
     <tbody>
       <tr><td>Card</td><td><code>.bcard</code></td><td>card-bg, 14px radius, <code>position:relative; overflow:hidden</code>. The <code>.bcard-accent</code> div is present in the HTML but has no CSS — it is a hook reserved for future use. Whole card is clickable — <code>data-toggle-card</code></td></tr>
       <tr><td>Accent hook</td><td><code>.bcard-accent</code></td><td>Empty <code>&lt;div&gt;</code> — present in HTML, no CSS applied. Hook for future use</td></tr>
-      <tr><td>Body</td><td><code>.bcard-body</code></td><td><code>padding:16px</code> — uniform padding, no left offset needed</td></tr>
+      <tr><td>Body</td><td><code>.bcard-body</code></td><td>Zone wrapper, not a box. <code>.bcard</code> itself carries the uniform <code>padding:16px</code>, so this adds no second inset. Optional — the zones may sit directly inside <code>.bcard</code></td></tr>
       <tr><td>Meta row</td><td><code>.bcard-meta</code></td><td>flex, gap 8px, <code>margin-bottom:8px</code>. Holds <code>.severity-dot</code> (8px semantic circle) + <code>.type-label</code> (10px/700 uppercase) + <code>.priority-badge</code> (9px/700 pill, <code>margin-left:auto</code>)</td></tr>
       <tr><td>Conclusion</td><td><code>.bcard-conclusion</code></td><td>13px/600, <code>--d100</code>, <code>line-height:1.55; margin:0 0 10px</code>. Inline semantic <code>&lt;span&gt;</code> with priority color for the key figure</td></tr>
       <tr><td>Evidence row</td><td><code>.evidence-row</code></td><td>flex, gap 6px, flex-wrap, <code>margin-bottom:12px</code>. Holds <code>.evidence-pill</code> chips</td></tr>
@@ -9544,7 +9709,7 @@ dd.<span class="ck">addEventListener</span>(<span class="cs">'dd:change'</span>,
   <div class="ds-preview">
     <div class="copy-field">
       <code>https://aimy.app/invite/x7Kp2mQ9</code>
-      <button class="copy-btn" data-copy-color="https://aimy.app/invite/x7Kp2mQ9" data-copy-label="Invite link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy</button>
+      <button class="copy-btn" type="button" aria-label="Copy invite link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg><span class="copy-btn-label">Copy</span></button>
     </div>
   </div>
 </div>
@@ -10798,7 +10963,7 @@ dd.<span class="ck">addEventListener</span>(<span class="cs">'dd:change'</span>,
       <tr><td>AiMY bubble</td><td><code>.chat-msg.aimy .msg-bubble</code></td><td><code>border-radius:4px 12px 12px 12px</code> — flat top-left. Subtle white tint bg + white-8% border</td></tr>
       <tr><td>User bubble</td><td><code>.chat-msg.user .msg-bubble</code></td><td><code>border-radius:12px 4px 12px 12px</code> — flat top-right. <code>--accent</code> tint 14% + 22% border</td></tr>
       <tr><td>Bubble text</td><td><code>.msg-bubble</code></td><td>14px/500, <code>--d50</code>, <code>line-height:1.6</code>. <code>max-width:540px; padding:12px 16px</code></td></tr>
-      <tr><td>Typing indicator</td><td><code>.typing-dots</code></td><td>3 × 6px dots, <code>--d500</code> fill. Each bounces via <code>typingBounce</code> keyframe with 0.15s stagger. Rendered inside a bare <code>.msg-bubble</code> without text</td></tr>
+      <tr><td>Typing indicator</td><td><code>.ai-thinking</code> + <code>.stream-cursor</code></td><td>The implemented indicator. <code>.ai-thinking .dots span</code> bounces with a stagger and holds visible under <code>prefers-reduced-motion</code>; <code>.stream-cursor</code> marks the streaming caret. Rendered inside a bare <code>.msg-bubble</code> without text. <em>Previously listed here as <code>.typing-dots</code>, which has never had CSS — doctrine §6.2 should be updated to match.</em></td></tr>
       <tr><td>Error bubble</td><td><code>.msg-error-bubble</code></td><td>Replaces <code>.msg-bubble</code> content. <code>--err-bg</code> tint, err-colored icon, 13px text. Rendered inside a <code>.msg-bubble</code> with <code>padding:0; background:none; border:none</code></td></tr>
     </tbody>
   </table>
@@ -11027,14 +11192,45 @@ dd.<span class="ck">addEventListener</span>(<span class="cs">'dd:change'</span>,
 /* ═══════════════════════════════════════════════════
    TABS — switch panel within a .ds-tabs group
 ═══════════════════════════════════════════════════ */
+/* Selection is announced as well as painted.
+   This used to toggle .active and nothing else, so a strip built with
+   role="tablist" kept whatever aria-selected the markup shipped with — after
+   the first switch a screen reader was told the wrong tab was current, which
+   is worse than no ARIA at all. Arrow-key navigation is expected inside a
+   tablist and was missing too, leaving the component mouse-only. */
 function dsTab(btn, panelId) {
   const root = btn.closest('.ds-section') || document;
-  root.querySelectorAll('.ds-tab').forEach(t => t.classList.remove('active'));
-  btn.classList.add('active');
+  const strip = btn.closest('.ds-tabs') || root;
+  strip.querySelectorAll('.ds-tab').forEach(t => {
+    const on = t === btn;
+    t.classList.toggle('active', on);
+    if (t.hasAttribute('role') || t.hasAttribute('aria-selected')) t.setAttribute('aria-selected', on ? 'true' : 'false');
+    /* Roving tabindex: one stop for the strip, arrows move within it. */
+    if (strip.getAttribute('role') === 'tablist') t.tabIndex = on ? 0 : -1;
+  });
   root.querySelectorAll('.ds-tabpanel').forEach(p => {
     p.style.display = (p.getAttribute('data-tp') === panelId) ? '' : 'none';
   });
 }
+
+/* Arrow / Home / End within a .ds-tabs strip. */
+document.addEventListener('keydown', function (e) {
+  if (!/^(ArrowRight|ArrowLeft|ArrowDown|ArrowUp|Home|End)$/.test(e.key)) return;
+  const cur = e.target.closest && e.target.closest('.ds-tab');
+  if (!cur) return;
+  const strip = cur.closest('.ds-tabs');
+  if (!strip || strip.getAttribute('role') !== 'tablist') return;
+  const tabs = [...strip.querySelectorAll('.ds-tab')];
+  const i = tabs.indexOf(cur);
+  let n;
+  if (e.key === 'Home') n = 0;
+  else if (e.key === 'End') n = tabs.length - 1;
+  else if (e.key === 'ArrowRight' || e.key === 'ArrowDown') n = (i + 1) % tabs.length;
+  else n = (i - 1 + tabs.length) % tabs.length;
+  e.preventDefault();
+  tabs[n].focus();
+  tabs[n].click();
+});
 
 /* Close open menus / popovers on outside click or Escape */
 document.addEventListener('click', function (e) {
@@ -11553,7 +11749,45 @@ document.addEventListener('click', function (e) {
   const t = e.target;
   let el;
 
-  /* ── Copy engine ── */
+  /* ── Copy field (component) ──
+     Ships with the library rather than being left to each consumer. Without
+     it, every product either writes this again or ships a button that
+     silently does nothing — the field looks correct and copies nothing, which
+     is worse than an obviously broken control. Self-contained on purpose: no
+     dependency on this page's copyColor/copyCode, which are documentation
+     chrome and are dropped on extraction. */
+  if ((el = t.closest('.copy-field .copy-btn'))) {
+    const field = el.closest('.copy-field');
+    const src = field && field.querySelector('code');
+    const value = el.getAttribute('data-copy-value') || (src ? src.textContent.trim() : '');
+    if (!value) return;
+    const done = () => {
+      const label = el.querySelector('.copy-btn-label');
+      const prev = label ? label.textContent : null;
+      el.classList.add('copied');
+      if (label) label.textContent = 'Copied';
+      setTimeout(() => {
+        el.classList.remove('copied');
+        if (label && prev !== null) label.textContent = prev;
+      }, 1600);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(value).then(done, () => {});
+    } else {
+      /* file:// and non-secure origins have no async clipboard */
+      const ta = document.createElement('textarea');
+      ta.value = value;
+      ta.setAttribute('readonly', '');
+      ta.style.cssText = 'position:fixed;top:-9999px';
+      document.body.appendChild(ta);
+      ta.select();
+      try { document.execCommand('copy'); done(); } catch (err) {}
+      ta.remove();
+    }
+    return;
+  }
+
+  /* ── Copy engine (documentation) ── */
   if ((el = t.closest('[data-copy-color]'))) {
     copyColor(el.getAttribute('data-copy-color'), el.getAttribute('data-copy-label') || '');
     return;
