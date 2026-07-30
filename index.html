@@ -1527,7 +1527,12 @@
     .float-badge {
       position: absolute; top: -3px; right: -3px;
       min-width: 16px; height: 16px; border-radius: var(--r-pill);
-      background: var(--err); border: 1.5px solid #0f1215;
+      /* Tokenised. This was a literal #0f1215 — a stale snapshot of --body-bg
+         that stopped matching the moment a product changed the token, leaving
+         the badge ringed in a colour nothing else on the page uses. The ring
+         exists to punch the badge out of whatever it sits on, so it has to
+         track that surface. */
+      background: var(--err); border: 1.5px solid var(--body-bg);
       font-size: 9px; font-weight: 800; color: #fff;
       display: flex; align-items: center; justify-content: center;
       padding: 0 3px; letter-spacing: 0.02em;
