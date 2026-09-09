@@ -656,6 +656,7 @@ an ink looks wrong there, it was skipped, not missed.
   shape, and it has not been done.
 - **`.form-summary`** carries a 3px `border-left` in `--err`. It is the one place a left-border
   stripe survives, and it should be a ground.
+- **White on the unread badge is 3.76:1**, under the 4.5:1 small-text minimum. It has always been, on both the old `--err` and `--err-strong`; a filled alarm carrying two digits wants a darker ground or darker text, and that is a decision rather than a sweep.
 - **Two orphaned rule bodies** in Sales's `sales.css` — declarations with no selector, leaving the
   file two braces short. Pre-existing, and unrelated to this sweep.
 - **`.ds-select` vs `.v2-dropdown`** — resolved in favour of the custom dropdown; see §10.3.
