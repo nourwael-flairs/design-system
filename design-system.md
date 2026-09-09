@@ -42,7 +42,22 @@ The shared foundation for the Aimy ecosystem — one token layer, one component 
 | `--d900` | `#0d1117` | `#eef2f6` |
 | `--d950` | `#080b10` | `#f7fafc` |
 
-Roles: `--d50` primary text · `--d400` secondary/muted · `--d500` tertiary/placeholder · `--d600` faint labels/separators.
+### Ink — three values, and they sit close together
+
+Muted text tested badly in the products: readers skipped it. That is not hierarchy, it is text
+nobody reads — so the band that may carry type is narrow, and every value in it is legible on its
+own. Hierarchy at the small end is carried by **weight and position**, not by fading the words.
+
+| Role | Token | Use |
+|---|---|---|
+| `--ink-primary` | `--d50` | Anything you read: figures, headlines, names, body |
+| `--ink-secondary` | `--d100` | The supporting line under it |
+| `--ink-muted` | `--d200` | **The floor for type.** Slightly quiet, still read. Nothing fainter carries a word |
+| `--ink-placeholder` | `--d400` | The one exception — a hint that must not read as a value |
+| `--ink-rule` | `--d600` | **NON-TEXT.** Hairlines, dots, dividers, disabled marks. Never type |
+
+`--d300` and below are for rules, dots and disabled states. If a piece of text feels like it wants
+`--d400`, the question is whether it needs to be on the screen at all.
 
 ### Brand & accent
 
@@ -79,8 +94,8 @@ failure: overusing a hue for two unrelated jobs "stripped the color of its atten
 |---|---|---|---|---|
 | `--ok` | `#7fae94` | `#4a7a5e` | decided, and decided well | `--ok-bg` @ 10–12% |
 | `--err` | `#d2827b` | `#903b37` | decided badly, or a door shut for good | `--err-bg` @ 10–12% |
+| `--info` | `#8aa6bd` | `#4d6b85` | **provenance** — this came from AiMY | `--info-bg` @ 10–12% |
 | `--warn` | `#98a5b3` | `#5a6672` | **no longer a hue** — the neutral ink | `--warn-bg` @ 10% |
-| `--info` | `#98a5b3` | `#5a6672` | **no longer a hue** — the neutral ink | `--info-bg` @ 10% |
 
 The two survivors share one chroma and one lightness so they read as a pair rather than as two
 signals. The negative carries about ten points more saturation than the positive, deliberately:
@@ -88,9 +103,19 @@ they are not used equally often, and the rarer, costlier one gets the louder hal
 Measured 5.96:1 and 7.19:1 on the card, 7.33:1 and 6.4:1 on white — a step darker on white, as
 every hue here is.
 
-**What keeps its colour.** `--brand` is focus and the primary action; `--accent` is selection, the
-nav mark and the AI surface; `--ai` is provenance. Identity and affordance are not verdicts, and
-none of them was what the traffic-light reading was about.
+**And a third hue, for provenance.** The two poles say how something *ended*. `--info` says who it
+came *from*: AiMY noticed it, AiMY has an opinion about it, AiMY wrote it. That is the thing a
+reader most needs to know before trusting a line, it is worth a colour of its own, and it never
+sits on the same object as a verdict — so the three cannot collide. It is pulled to the poles'
+chroma so it joins the family rather than starting a second one.
+
+Three status hues in the whole ecosystem, then: **decided well · decided badly · came from AiMY.**
+Everything else is the neutral ramp.
+
+**What keeps its colour on top of that.** `--brand` is focus and the primary action; `--accent` is
+selection and the nav mark; `--ai` is the AI *surface* — the canvas, the streaming cursor, the
+model dot — and stays the full gradient it always was. Identity and affordance are not verdicts,
+and none of them was what the traffic-light reading was about.
 
 **Adopting it in a product.** Change values, not call sites. `tag-warn` and `tag-info` still exist
 and still resolve — they simply stop being hues. Where a product used a hue to distinguish
@@ -122,8 +147,20 @@ keeps it.
 
 Tokens: `--font-sans` (Urbanist) · `--font-display` (Poppins) · `--font-mono` · `--fst-normal` / `--fst-italic`.
 
-### Scale (`--fs-*`)
-`2xs` 10 · `xs` 11 · `sm` 12 · `base` 13 · `md` 14 · `lg` 16 · `xl` 18 · `2xl` 22 · `3xl` 28 · `4xl` 34 · `5xl` 46 (px)
+### Scale (`--fs-*`) — a floor at 14, and a working minimum at 16
+
+`2xs` 14 · `xs` 14 · `sm` 16 · `base` 16 · `md` 16 · `lg` 18 · `xl` 20 · `2xl` 24 · `3xl` 30 · `4xl` 38 · `5xl` 46 (px)
+
+**14px is the floor.** Nothing in any Aimy product is smaller, ever — and it is reserved for
+*minimal components*: a badge, a count, a dense cell, where a word is a mark rather than something
+you read.
+
+**16px is the working minimum.** Body, labels, row text, card text, anything a person actually
+reads. Most of the product lives here.
+
+The old scale put four steps below the floor and body at 13, which is how the reference
+implementation alone accumulated **540 sites of sub-14px type**. The upper steps moved up with the
+base to keep the intervals — a heading one step above 16 has to be 18, not the 16 it used to be.
 
 ### Weights (`--fw-*`)
 light 300 · regular 400 · medium 500 · semibold 600 · bold 700 · extrabold 800
@@ -150,12 +187,12 @@ read the token, so a product that raises it gets corrected labels for free.
 | Section H2 | Poppins | 24 / 800 / −0.02em |
 | Sub-heading H3 | Poppins | 14 / 700 |
 | Page title | Urbanist | 15 / 700 / −0.01em |
-| Body | Urbanist | 13 / 500 |
-| Card title | Urbanist | 12 / 600 |
-| Nav item | Urbanist | 13 / 600 |
-| Label / eyebrow | Urbanist | 10 / 700 / +0.1em, uppercase |
-| Badge / pill | Urbanist | 9–10 / 700, uppercase |
-| Mono | JetBrains | 11–12 / 400–500 |
+| Body | Urbanist | 16 / 500 |
+| Card title | Urbanist | 16 / 700 |
+| Nav item | Urbanist | 16 / 600 |
+| Label / eyebrow | Urbanist | 14 / 700 / +0.06em, uppercase |
+| Badge / pill | Urbanist | 14 / 700, uppercase, tracked |
+| Mono | JetBrains | 16 / 400–500 — inline `<code>` needs `font-size: 1em`, or the browser sets it to 13 |
 
 ---
 
