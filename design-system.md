@@ -53,6 +53,7 @@ own. Hierarchy at the small end is carried by **weight and position**, not by fa
 | `--ink-primary` | `--d50` | Anything you read: figures, headlines, names, body |
 | `--ink-secondary` | `--d100` | The supporting line under it |
 | `--ink-muted` | `--d200` | **The floor for type.** Slightly quiet, still read. Nothing fainter carries a word |
+| the family | §1 | A word *inside a sentence* may take a family hue when the word **is** the status — "**Callback** — they asked to be called back, 29 Aug." The rest of the line stays in the ink band |
 | `--ink-placeholder` | `--d400` | The one exception — a hint that must not read as a value |
 | `--ink-rule` | `--d600` | **NON-TEXT.** Hairlines, dots, dividers, disabled marks. Never type |
 
@@ -102,11 +103,19 @@ failure: overusing a hue for two unrelated jobs "stripped the color of its atten
 | `--err` | `#d2827b` | `#8a473f` | decided badly, or a door shut for good | H5 S49 L65 | 5.96:1 |
 | `--info` | `#8aa6bd` | `#4d6b85` | provenance — this came from AiMY | H207 S28 L64 | 6.82:1 |
 | `--warn` | `#c0a47c` | `#7a613c` | needs attention, not an alarm | H35 S35 L62 | 7.30:1 |
+| `--err-strong` | `#f04438` | `#d92d20` | **not in the family** — see below | — | — |
 | `--accent-label` | `#a892bf` | `#5f5079` | the accent, at the family's chroma | H269 S26 L66 | 6.21:1 |
 | `--teal-label` | `#84b3b0` | `#3f6b68` | the teal, at the family's chroma | H176 S24 L61 | 7.47:1 |
 
 One chroma, one lightness, one voice. `--err` carries about twenty points more saturation than the
 rest, deliberately: the six are not used equally often, and a verdict should still reach you first.
+
+**`--err-strong` is the exception, and it is a control, not a label.** The family is for words that
+describe something, and it is quiet on purpose. A filled control that stops something already *in
+flight* is not describing anything — it is an alarm, and an alarm is the one place a full chroma is
+correct. Hanging up on a person mid-call is the case it exists for; a mispress costs you the call,
+and muted it read as a suggestion. It is never a badge ground, never a border, never text: if a red
+is being used to say what something **is**, it is `--err`.
 `--accent-label` and `--teal-label` exist because `--accent` and `--teal` are identity tokens a
 product re-themes — a product that re-themes `--accent` should revisit its label rendering with it.
 
@@ -160,16 +169,26 @@ keeps it.
 
 Tokens: `--font-sans` (Urbanist) · `--font-display` (Poppins) · `--font-mono` · `--fst-normal` / `--fst-italic`.
 
-### Scale (`--fs-*`) — a floor at 14, and a working minimum at 16
+### Scale (`--fs-*`) — three sizes, and each one names what it is for
 
-`2xs` 14 · `xs` 14 · `sm` 16 · `base` 16 · `md` 16 · `lg` 18 · `xl` 20 · `2xl` 24 · `3xl` 30 · `4xl` 38 · `5xl` 46 (px)
+`2xs` 12 · `xs` 14 · `sm` 16 · `base` 16 · `md` 16 · `lg` 18 · `xl` 20 · `2xl` 24 · `3xl` 30 · `4xl` 38 · `5xl` 46 (px)
 
-**14px is the floor.** Nothing in any Aimy product is smaller, ever — and it is reserved for
-*minimal components*: a badge, a count, a dense cell, where a word is a mark rather than something
-you read.
+**12 — minimal components.** Tags, status labels, work states, and the metadata that sits beside
+something else: a timestamp, a count, a unit, an attribution. Things you *recognise* rather than
+read, in capitals, tracked, three or four words at most. At 14 a tag stops behaving like a mark and
+starts competing with the name next to it.
 
-**16px is the working minimum.** Body, labels, row text, card text, anything a person actually
-reads. Most of the product lives here.
+**14 — the smallest sentence.** A supporting line, help text, a dense cell. Anything with a verb in
+it starts here.
+
+**16 — the working minimum.** Body, row text, card text, anything primary. Most of the product
+lives here.
+
+**Nothing is smaller than 12, and 12 is never a paragraph.** The old scale put four steps below 14
+and body at 13, which is how the reference implementation alone accumulated **540 sites of sub-14px
+type**; 341 of them were marks and 199 were ordinary text set too small. The upper steps moved up
+with the base to keep the intervals — a heading one step above 16 has to be 18, not the 16 it used
+to be.
 
 The old scale put four steps below the floor and body at 13, which is how the reference
 implementation alone accumulated **540 sites of sub-14px type**. The upper steps moved up with the
@@ -204,7 +223,8 @@ read the token, so a product that raises it gets corrected labels for free.
 | Card title | Urbanist | 16 / 700 |
 | Nav item | Urbanist | 16 / 600 |
 | Label / eyebrow | Urbanist | 14 / 700 / +0.06em, uppercase |
-| Badge / pill | Urbanist | 14 / 700, uppercase, tracked |
+| Tag / status / work state | Urbanist | **12** / 700 / +0.06em, uppercase, 16px line box |
+| Meta beside something | Urbanist | 12 / 500–600 — a timestamp, a count, a unit, an attribution |
 | Mono | JetBrains | 16 / 400–500 — inline `<code>` needs `font-size: 1em`, or the browser sets it to 13 |
 
 ---
