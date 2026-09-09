@@ -607,6 +607,41 @@ out of scope.
 - In the products' JavaScript, a `tagCase()` helper at **16** render sites. It is at the render
   site on purpose: the same string is a tag on one screen and a button or a filter on another.
 
+### The override is the last word, so it is the first place a floor has to reach
+
+Everything above was applied to stylesheets and verified by reading them, and the products still
+rendered body at 14px and meta at 13px. Reading a file is not the same as reading a screen.
+
+**A product may re-declare a library token, and then the library's value never renders.** Three
+places were doing it, none of them reached by a sweep over declarations:
+
+- `Sales/sales.css` re-declares the whole `--fs-*` scale as 12 · 13 · 13 · 14 · 14, sitting after
+  the shell in the cascade. The shell had been corrected to 12 · 14 · 16 and the product put it
+  back.
+- `Knowledge/knowledge.css` declares its own role scale, `--ty-*`, at 17 · 15 · 13 — three odd
+  steps standing on a 12px floor.
+- `Knowledge/knowledge.css` also keeps a **copy of the library's `--fs-*` scale in rem**, under a
+  comment reading *"nothing here changes a value; every number is the library's own, divided by
+  16."* That was true when the library's bottom step was 10px. It is 12px now, and the copy was
+  still handing out 10 — so `.tc-approval` rendered at 10px through a shell that had already been
+  corrected. A stale copy of a token is worse than no copy: it looks correct at both ends and is
+  wrong in the middle.
+
+Nineteen further sites in Knowledge wrote `0.875rem` as a literal where the token beside it held
+the same value; those now read `var(--ty-meta)`, and its type-scale audit went from 21 findings to
+3, all deliberate.
+
+**And the shell was shipping unstamped.** `aimy-ds.css` was linked with no `?v=` in Sales's
+`index.html` and both of Knowledge's pages, while every other asset carried one — so every shell
+change since the stamps began has reached returning users only when their cache happened to expire.
+Stamped, and all three products' stamps bumped together.
+
+**The check that catches this is a runtime one.** Walk every rendered element, read its computed
+`font-size`, exclude the carved-out surfaces by class, and assert that nothing is odd and nothing
+is under 12. It found all three overrides in one pass, after the file-level sweep had reported
+clean. The reference page, Sales and Knowledge now return 12 · 14 · 16 · 18 · 20 · 24 · 28 · 30 ·
+32 · 34 · 40 · 46 · 54 and nothing else.
+
 ### What was deliberately left alone
 
 **The top navigation, the chat input and the AiMY canvas.** Those three surfaces are shared chrome
