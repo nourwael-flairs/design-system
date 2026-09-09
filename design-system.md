@@ -17,7 +17,8 @@ The shared foundation for the Aimy ecosystem — one token layer, one component 
 | **Accessible by default** | `:focus-visible` rings, `prefers-reduced-motion`, AA contrast in both themes. Status is always carried by color **and** text/icon, never color alone. |
 | **Color is a family, not a signal** | Six hues at one chroma and one lightness, so a screen of labels reads as one voice. A hue names **what kind of thing this is** — and because none of them shouts, that is a flavour rather than an alarm. What a hue may never name is a **position**: a rung on a ladder, a stage in a pipeline. Those are read by order, and colouring them is how five steps end up the same green. See §1. |
 | **A tag is a name, not a sentence** | A label pill carries the NAME of a state, so it is capitalised like one: sentence case, and both words capitalised when there are exactly two — "Meeting Set" is a thing, "meeting set" is something that happened. Past two words it is a phrase and stays sentence case. Full capitals were doing volume rather than meaning, and they cost legibility at 12px because every word becomes the same rectangle. The one role that keeps capitals is the section marker, of which there is one per group. See §2. |
-| **A label has a fill; a control has an edge** | A hairline border is this system's signature for something you can press. Tags and status labels take a ground and no border; buttons and chips take a border and no ground. Anything with both is a control impersonating a label, or the reverse. |
+| **A label has a fill; a control has an edge; a link has neither** | A hairline border is this system's signature for something you can press. Tags and status labels take a ground and no border; buttons and chips take a border and no ground; a link is coloured text with neither. Anything carrying both a fill and an edge is a control impersonating a label, or the reverse — and a **verb** wearing the link's clothes is the third mistake, which is how an actions row ends up reading as a row of URLs. See §2, *Hierarchy*. |
+| **A rank is a set of differences** | A rank differs from its neighbour in at least **two of {size, weight, ink}**. One axis is not a level: 14 against 16 at the same weight in the same grey is two things a reader cannot separate, and it reads as noise rather than as order. Both products wrote this rule for themselves before it was written here. See §2, *Hierarchy*. |
 
 ---
 
@@ -268,6 +269,69 @@ the correction for free.
 | Tag / status / work state | Urbanist | **12** / 700 / sentence case, both words capitalised at two words, 16px line box |
 | Meta beside something | Urbanist | 12 / 500–600 — a timestamp, a count, a unit, an attribution |
 | Mono | JetBrains | 16 / 400–500 — inline `<code>` needs `font-size: 1em`, or the browser sets it to 13 |
+
+### Hierarchy — a rank is a set of differences
+
+The table above names the roles. This is how to combine them, and it is the
+half that a type floor puts under pressure.
+
+**A rank differs from its neighbour in at least two of {size, weight, ink}.**
+One axis is not a level. 14 against 16 at the same weight in the same grey is
+two things a reader cannot separate — the difference is there, and it reads as
+noise rather than as order. Two axes moving together is what makes a hierarchy
+read at a glance instead of on inspection.
+
+**The floor compressed the size axis, so the other two have to absorb it.**
+Before it, a product could spend five steps inside six pixels — 16 · 13 · 13 ·
+12 · 12 · 12 · 10 was a real card in Sales. On even steps with a 12 floor there
+are four: 12 · 14 · 16 · 18. Weight has five values and was carrying almost
+nothing; ink has three that may hold type. Anything that used to be a size
+difference is now a weight or an ink difference, and the ranks have to be
+re-spread deliberately — **a floor applied without a hierarchy pass flattens
+every card it touches.** Sales's queue card came out of the sweep with eleven of
+seventeen runs at 16px, its name and its status sentence both 16/800/primary: a
+card with two L1s that looked identical.
+
+**Flatness is measurable, so measure it.** Take every text run in a block,
+reduce it to the triple {size, weight, ink}, and count how many runs share the
+commonest one. Above about **0.4 — nearly half the block wearing one face —
+there is no hierarchy**, however carefully each treatment was chosen. Run it
+across every surface in every role rather than judging by eye: it found four
+blocks in Sales that reading the stylesheets had not.
+
+The measure is a proxy and it misfires in one direction, so read the result
+before acting on it. **A band is meant to be uniform** — a row of facts,
+company · industry · city · headcount, is one rank and should wear one face,
+and it scores high without being wrong. What the number is good at is finding
+two *different* ranks that have collapsed onto one treatment.
+
+**Three traps it found, none of them visible in the source:**
+
+- **A demotion to a value the element already has is a no-op.** Sales's
+  `.b-feed-meta` pushes an attribution to `--ink-muted` — and `--ink-muted` is
+  `--d200`, which is what the line it sits in already sets. Written to move the
+  bookkeeping a step down; after the ink band narrowed, moving it to exactly
+  where it was. Seventeen of forty-two runs on a page came out identical
+  because of it. **After narrowing a ramp, re-check every rule that demotes
+  into it.**
+- **One element, one rule.** Two rules set the same card title at two different
+  tokens, same specificity, and the later one won — so the name rendered 16
+  under a comment documenting it at 18. A second rule for an element is not an
+  override, it is a coin toss decided by file order.
+- **Emphasis inside a line needs the line not to be bold already.** A 700 line
+  whose `<b>` runs inherit `bolder` gives you 700 and 800 in one sentence: two
+  weights doing the work of none, and over two lines the mass of it outranks a
+  larger heading above. Set the line a step down and let the emphasis be the
+  step.
+
+**A fact that is a door is still a fact.** A phone number, an email, a website,
+a company name — values you read that happen to navigate. They take their row's
+size, and colour carries that they are pressable; giving them their own size
+makes a facts row alternate 16 · 14 · 16 · 16 on whether each fact happens to
+be a link. A **verb** is not one of these. It is a control and takes the
+control's edge — give it the link treatment and an actions row reads as a list
+of URLs, which is what happened on a record where no primary was rendered at
+all.
 
 ---
 
