@@ -15,6 +15,8 @@ The shared foundation for the Aimy ecosystem — one token layer, one component 
 | **Theme-aware** | Every surface works in light and dark. Test both before shipping. |
 | **AI-native** | AI states (thinking, streaming, citations, suggestions) are first-class components, not afterthoughts. AI never applies changes silently — always review (accept/reject). |
 | **Accessible by default** | `:focus-visible` rings, `prefers-reduced-motion`, AA contrast in both themes. Status is always carried by color **and** text/icon, never color alone. |
+| **Color marks an outcome** | A hue means something has been *decided* or something is *wrong*. It never names a category, a stage, a severity band or a kind of thing — those are read by their words and their position. Two hues carry a verdict across the whole ecosystem; everything else is the neutral ramp, the brand and the accent. See §1. |
+| **A label has a fill; a control has an edge** | A hairline border is this system's signature for something you can press. Tags and status labels take a ground and no border; buttons and chips take a border and no ground. Anything with both is a control impersonating a label, or the reverse. |
 
 ---
 
@@ -56,16 +58,45 @@ Roles: `--d50` primary text · `--d400` secondary/muted · `--d500` tertiary/pla
 
 Rule: **focus is always `--brand`**, never the product accent — focus stays consistent across every Aimy product.
 
-### Semantic status
+### Semantic status — two poles, and a licence
 
-Text/icon hues darken one step in light mode (dark-mode mid-tones fail contrast on white). Tint backgrounds stay pale.
+**The rule: colour marks an outcome.** Something decided, or something wrong. It never names a
+category, a stage, a severity band or a kind of appointment. Those are read by their words and
+their position, which is what words and positions are for.
 
-| Token | Dark | Light | Bg token |
-|---|---|---|---|
-| `--ok` | `#17b26a` | `#0e9257` | `--ok-bg` green @ 12–14% |
-| `--warn` | `#f79009` | `#b26205` | `--warn-bg` amber @ 12–14% |
-| `--err` | `#f04438` | `#d92d20` | `--err-bg` red @ 12–14% |
-| `--info` | `#0ea5e9` | `#067dc2` | `--info-bg` cyan @ 12–14% |
+**Why four became two.** Amber sitting between green and red *is* the traffic light, and this
+system spent it on "owed", "late" and "gatekeeper" — none of which is a verdict. Cyan named
+"information", which is what every pixel on a screen already is. Both now resolve to the neutral
+ink. The token names stay so no product has to rename a call site, and so a product adopting the
+licence changes values rather than markup.
+
+The evidence for the change: across Sales, QA and Knowledge the ecosystem makes ~7,500 references
+to a hue-bearing token, and the two most-used are `--err` (1,414) and `--ok` (1,087) — both ahead
+of `--brand` (942). Red and green were the busiest colours in the system. Astro UXDS names the
+failure: overusing a hue for two unrelated jobs "stripped the color of its attention-getting power".
+
+| Token | Dark | Light | Means | Bg token |
+|---|---|---|---|---|
+| `--ok` | `#7fae94` | `#4a7a5e` | decided, and decided well | `--ok-bg` @ 10–12% |
+| `--err` | `#d2827b` | `#903b37` | decided badly, or a door shut for good | `--err-bg` @ 10–12% |
+| `--warn` | `#98a5b3` | `#5a6672` | **no longer a hue** — the neutral ink | `--warn-bg` @ 10% |
+| `--info` | `#98a5b3` | `#5a6672` | **no longer a hue** — the neutral ink | `--info-bg` @ 10% |
+
+The two survivors share one chroma and one lightness so they read as a pair rather than as two
+signals. The negative carries about ten points more saturation than the positive, deliberately:
+they are not used equally often, and the rarer, costlier one gets the louder half of a quiet pair.
+Measured 5.96:1 and 7.19:1 on the card, 7.33:1 and 6.4:1 on white — a step darker on white, as
+every hue here is.
+
+**What keeps its colour.** `--brand` is focus and the primary action; `--accent` is selection, the
+nav mark and the AI surface; `--ai` is provenance. Identity and affordance are not verdicts, and
+none of them was what the traffic-light reading was about.
+
+**Adopting it in a product.** Change values, not call sites. `tag-warn` and `tag-info` still exist
+and still resolve — they simply stop being hues. Where a product used a hue to distinguish
+categories (five kinds of appointment, six pipeline stages), that distinction moves to the word and
+to position; where it used one hue for several states, only the state that is genuinely an outcome
+keeps it.
 
 ### Surfaces & helpers
 
@@ -99,7 +130,17 @@ light 300 · regular 400 · medium 500 · semibold 600 · bold 700 · extrabold 
 
 ### Line height (`--lh-*`) / tracking (`--ls-*`)
 lh: none 1 · tight 1.2 · snug 1.4 · base 1.55 · relaxed 1.75
-ls: tighter −0.03em · tight −0.02em · normal 0 · wide 0.04em · wider 0.08em
+ls: tighter −0.03em · tight −0.02em · normal 0 · wide 0.06em · wider 0.08em
+
+`--ls-wide` is the tracking for **capitals**, and capitals need 5–12%. It shipped at 4% — uppercase
+with the correction left out — while the roles table below asked for +0.1em on the same runs, so
+the token and the documentation disagreed and every component reading the token lost. Raised to
+0.06em; `--ls-wider` is unchanged above it.
+
+**The caption floor.** `--fs-2xs` is the smallest step, and at that size type is capitals and
+tracked, or it is not that size. A product that needs lowercase at the small end raises the step
+rather than lowering the case: Sales runs `--fs-2xs` at 11px for exactly this reason. Components
+read the token, so a product that raises it gets corrected labels for free.
 
 ### Roles
 
@@ -142,8 +183,8 @@ ls: tighter −0.03em · tight −0.02em · normal 0 · wide 0.04em · wider 0.0
 ### Components (base)
 | Component | Classes | Notes |
 |---|---|---|
-| Buttons | `.btn` + `.btn-brand/ghost/err/warn/ok/accent`, `.btn-sm/.btn-lg` | Contextual color; 13/700; radius `--r-md` |
-| Tags & badges | `.tag` + `tag-ok/warn/err/info/teal/ai/accent/neutral`, `.signal-badge` | Uppercase 700; semantic color + border tint |
+| Buttons | `.btn` + `.btn-brand/ghost/err/warn/ok/accent`, `.btn-sm/.btn-lg` | Contextual color; 13/700; radius `--r-md`. **A control, never a label:** a hairline border and no ground, except the one filled primary per surface |
+| Tags & badges | `.tag` + `tag-ok/warn/err/info/teal/ai/accent/neutral`, `.signal-badge` | **A label, never a control.** One ground and a transparent border for every tone; uppercase 700 at `--fs-2xs` / `--ls-wide` in a 16px line box. Only `tag-ok` and `tag-err` colour the word and add a 15% tint of their own hue — the rest are identical to `tag-neutral` by design. Never give it a visible border: that is what a control wears |
 | Chips & filters | `.chip` (`default/active/brand/ok/warn/err`), `.afs` strip | Active = accent |
 | Dropdown | `.v2-dropdown` + `-btn`/`-panel`/`-option`, `.dd-label-text` | **The only select control.** Custom listbox: full keyboard model, typeahead, focus return, `aria-haspopup="listbox"` / `role="listbox"` / `aria-selected`. Never use a native `<select>`, and never rebuild this pattern by hand |
 | Cards | `.card`, `.bcard`, `.narrative-card`, `.finding` | One `.tier-primary` per view |
@@ -189,7 +230,7 @@ Components required by the **Knowledge-to-Action Doctrine**. These are not optio
 
 | Component | Classes | Anchor | Doctrine rule |
 |---|---|---|---|
-| **Work state** | `.work-state` + `.ws-detected/-recommended/-drafted/-staged/-completed/-failed`, `.ws-dot`; pipeline `.ws-track/.ws-step(.is-past/.is-current)/.ws-sep` | `#work-state` | §2.3 — a **required field** on every surfaced item. Canonical value lives on `data-work-state`; `handled`/`blocked` are display aliases for `completed`/`failed` only |
+| **Work state** | `.work-state` + `.ws-detected/-recommended/-drafted/-staged/-completed/-failed`, `.ws-dot`; pipeline `.ws-track/.ws-step(.is-past/.is-current)/.ws-sep` | `#work-state` | §2.3 — a **required field** on every surfaced item. Canonical value lives on `data-work-state`; `handled`/`blocked` are display aliases for `completed`/`failed` only. **Four of the six are positions, not verdicts:** detected · recommended · drafted · staged all take the plain pill, and only `completed` and `failed` carry a hue. What separates the four is the **dot** — hollow while AiMY is still working on it, filled once the thing is real. On the pipeline, the current step is carried by ink at the top of the ramp, not by a hue |
 | **Confidence badge** | `.conf-badge` + `.conf-high/-medium/-low`, `.conf-meter`, `.conf-val` | `#sc-conf-badge` | §5.7, Level 5 — show where confidence changes interpretation. Medium and low must also state *what limits them* |
 | **Briefing card (extended)** | `.bcard-ack-row`, `.bcard-ack-btn(.is-acked)`, `.bcard-dismiss-picker(.open)`, `.bcard-dismiss-reason` | `#bcard-extended` | §5.9 — every item is dismissible with a captured reason; reversible dismissals offer Undo |
 | **Entry modes** | `.entry-action` + `.em-direct/-investigate/-prompt/-review`, `.em-ico`; spec tag `.entry-mode-tag` | `#entry-modes` | §3 — classification is **mandatory and explicit** at design time. An unclassified action fails review |
