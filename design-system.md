@@ -15,7 +15,7 @@ The shared foundation for the Aimy ecosystem — one token layer, one component 
 | **Theme-aware** | Every surface works in light and dark. Test both before shipping. |
 | **AI-native** | AI states (thinking, streaming, citations, suggestions) are first-class components, not afterthoughts. AI never applies changes silently — always review (accept/reject). |
 | **Accessible by default** | `:focus-visible` rings, `prefers-reduced-motion`, AA contrast in both themes. Status is always carried by color **and** text/icon, never color alone. |
-| **Color marks an outcome** | A hue means something has been *decided* or something is *wrong*. It never names a category, a stage, a severity band or a kind of thing — those are read by their words and their position. Two hues carry a verdict across the whole ecosystem; everything else is the neutral ramp, the brand and the accent. See §1. |
+| **Color is a family, not a signal** | Six hues at one chroma and one lightness, so a screen of labels reads as one voice. A hue names **what kind of thing this is** — and because none of them shouts, that is a flavour rather than an alarm. What a hue may never name is a **position**: a rung on a ladder, a stage in a pipeline. Those are read by order, and colouring them is how five steps end up the same green. See §1. |
 | **A label has a fill; a control has an edge** | A hairline border is this system's signature for something you can press. Tags and status labels take a ground and no border; buttons and chips take a border and no ground. Anything with both is a control impersonating a label, or the reverse. |
 
 ---
@@ -73,29 +73,42 @@ own. Hierarchy at the small end is carried by **weight and position**, not by fa
 
 Rule: **focus is always `--brand`**, never the product accent — focus stays consistent across every Aimy product.
 
-### Semantic status — two poles, and a licence
+### Semantic status — a family of six, and a licence
 
-**The rule: colour marks an outcome.** Something decided, or something wrong. It never names a
-category, a stage, a severity band or a kind of appointment. Those are read by their words and
-their position, which is what words and positions are for.
+**The rule has two halves.** A hue names *what kind of thing this is*; it never names a *position*.
+A rung on a ladder and a stage in a pipeline are read by order, and colouring them is how a product
+ends up with five steps in the same green. A kind — a dinner against a demo, a callback against a
+no-answer — is exactly what a hue is good for.
 
-**Why four became two.** Amber sitting between green and red *is* the traffic light, and this
-system spent it on "owed", "late" and "gatekeeper" — none of which is a verdict. Cyan named
-"information", which is what every pixel on a screen already is. Both now resolve to the neutral
-ink. The token names stay so no product has to rename a call site, and so a product adopting the
-licence changes values rather than markup.
+**The other half is chroma.** The first cut of this licence took every hue off every label, and the
+result was worse in a different way: a wall of grey pills is not calm, it is undifferentiated, and
+a screen loses its bearings along with its noise. The fix was never fewer colours — it was quieter
+ones. At a quarter of the old saturation a tone stops being a signal and becomes a flavour, and six
+of them can sit on one screen without any of them raising its voice.
+
+**Why the old set failed.** Not because there were six, but because they were #17b26a, #f79009,
+#f04438 and #0ea5e9 — a green, an amber and a red at full strength, which is a traffic light
+whatever you attach it to. Amber between the other two was the worst of it, and it was spent on
+"owed", "late" and "gatekeeper", none of which is a warning.
 
 The evidence for the change: across Sales, QA and Knowledge the ecosystem makes ~7,500 references
 to a hue-bearing token, and the two most-used are `--err` (1,414) and `--ok` (1,087) — both ahead
 of `--brand` (942). Red and green were the busiest colours in the system. Astro UXDS names the
 failure: overusing a hue for two unrelated jobs "stripped the color of its attention-getting power".
 
-| Token | Dark | Light | Means | Bg token |
-|---|---|---|---|---|
-| `--ok` | `#7fae94` | `#4a7a5e` | decided, and decided well | `--ok-bg` @ 10–12% |
-| `--err` | `#d2827b` | `#903b37` | decided badly, or a door shut for good | `--err-bg` @ 10–12% |
-| `--info` | `#8aa6bd` | `#4d6b85` | **provenance** — this came from AiMY | `--info-bg` @ 10–12% |
-| `--warn` | `#98a5b3` | `#5a6672` | **no longer a hue** — the neutral ink | `--warn-bg` @ 10% |
+| Token | Dark | Light | Means | HSL (dark) | On card |
+|---|---|---|---|---|---|
+| `--ok` | `#7fae94` | `#3f6b52` | decided, and decided well | H147 S22 L59 | 6.92:1 |
+| `--err` | `#d2827b` | `#8a473f` | decided badly, or a door shut for good | H5 S49 L65 | 5.96:1 |
+| `--info` | `#8aa6bd` | `#4d6b85` | provenance — this came from AiMY | H207 S28 L64 | 6.82:1 |
+| `--warn` | `#c0a47c` | `#7a613c` | needs attention, not an alarm | H35 S35 L62 | 7.30:1 |
+| `--accent-label` | `#a892bf` | `#5f5079` | the accent, at the family's chroma | H269 S26 L66 | 6.21:1 |
+| `--teal-label` | `#84b3b0` | `#3f6b68` | the teal, at the family's chroma | H176 S24 L61 | 7.47:1 |
+
+One chroma, one lightness, one voice. `--err` carries about twenty points more saturation than the
+rest, deliberately: the six are not used equally often, and a verdict should still reach you first.
+`--accent-label` and `--teal-label` exist because `--accent` and `--teal` are identity tokens a
+product re-themes — a product that re-themes `--accent` should revisit its label rendering with it.
 
 The two survivors share one chroma and one lightness so they read as a pair rather than as two
 signals. The negative carries about ten points more saturation than the positive, deliberately:
