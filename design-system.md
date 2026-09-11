@@ -11,11 +11,11 @@ The shared foundation for the Aimy ecosystem — one token layer, one component 
 | Principle | Meaning |
 |---|---|
 | **Token-first** | No hard-coded colors or spacing in product code. Every value is a CSS variable; themes and per-product accents are a single swap. |
-| **Product-agnostic** | Components carry no product copy or logic. Each product re-themes `--accent` and supplies content. |
+| **Product-agnostic** | Components carry no product copy or logic. Each product re-themes `--qa-accent` (the current product's accent token) and supplies content. |
 | **Theme-aware** | Every surface works in light and dark. Test both before shipping. |
 | **AI-native** | AI states (thinking, streaming, citations, suggestions) are first-class components, not afterthoughts. AI never applies changes silently — always review (accept/reject). |
-| **Accessible by default** | `:focus-visible` rings, `prefers-reduced-motion`, AA contrast in both themes. Status is always carried by color **and** text/icon, never color alone. |
-| **Color is a family, not a signal** | Six hues at one chroma and one lightness, so a screen of labels reads as one voice. A hue names **what kind of thing this is** — and because none of them shouts, that is a flavour rather than an alarm. What a hue may never name is a **position**: a rung on a ladder, a stage in a pipeline. Those are read by order, and colouring them is how five steps end up the same green. See §1. |
+| **Accessible by default** | `:focus-visible` rings, `prefers-reduced-motion`, AA contrast. Status is always carried by color **and** text/icon, never color alone. |
+| **Color signals status directly** | `--ok` / `--warn` / `--err` / `--info` are full-saturation hues — green, amber, red, blue — used deliberately so a verdict reads at a glance. See §1. |
 | **A tag is a name, not a sentence** | A label pill carries the NAME of a state, so it is capitalised like one: sentence case, and both words capitalised when there are exactly two — "Meeting Set" is a thing, "meeting set" is something that happened. Past two words it is a phrase and stays sentence case. Full capitals were doing volume rather than meaning, and they cost legibility at 12px because every word becomes the same rectangle. The one role that keeps capitals is the section marker, of which there is one per group. See §2. |
 | **A label has a fill; a control has an edge; a link has neither** | A hairline border is this system's signature for something you can press. Tags and status labels take a ground and no border; buttons and chips take a border and no ground; a link is coloured text with neither. Anything carrying both a fill and an edge is a control impersonating a label, or the reverse — and a **verb** wearing the link's clothes is the third mistake, which is how an actions row ends up reading as a row of URLs. See §2, *Hierarchy*. |
 | **A rank is a set of differences** | A rank differs from its neighbour in at least **two of {size, weight, ink}**. One axis is not a level: 14 against 16 at the same weight in the same grey is two things a reader cannot separate, and it reads as noise rather than as order. Both products wrote this rule for themselves before it was written here. See §2, *Hierarchy*. |
@@ -26,142 +26,148 @@ The shared foundation for the Aimy ecosystem — one token layer, one component 
 
 ### Neutral ramp `--d50 … --d950` (navy-tinted)
 
-`--d50` = strongest text, `--d950` = deepest surface. The ramp **inverts** in light mode, so text/surface roles hold automatically.
+`--d50` = strongest text, `--d950` = deepest surface. The ramp is **re-derived** for light, not
+inverted: the roles hold (ink at the `--d50` end, surfaces at the `--d950` end) but the values are
+picked against a white ground, because dark-on-light reads heavier than light-on-dark. Ink steps
+sit ~1.22× apart in contrast, and every one clears AA on both `--card-bg` and `--body-bg`.
 
-| Token | Dark | Light |
-|---|---|---|
-| `--d50` | `#eef2f6` | `#10151b` |
-| `--d100` | `#d8e0e8` | `#1c2630` |
-| `--d200` | `#c8d2dc` | `#2a3540` |
-| `--d300` | `#b0bcca` | `#3a4653` |
-| `--d400` | `#8b9aaa` | `#566472` |
-| `--d500` | `#637280` | `#637280` |
-| `--d600` | `#4a5b6e` | `#6e7d8d` |
-| `--d700` | `#2e3d50` | `#b0bcca` |
-| `--d750` | `#233040` | `#c8d2dc` |
-| `--d800` | `#1c2630` | `#d8e0e8` |
-| `--d850` | `#141b24` | `#e4eaf0` |
-| `--d900` | `#0d1117` | `#eef2f6` |
-| `--d950` | `#080b10` | `#f7fafc` |
+| Token | Dark | Light | Role |
+|---|---|---|---|
+| `--d50` | `#f5f7fb` | `#0f172a` | Strongest ink |
+| `--d100` | `#dee5ed` | `#1e293b` | Primary ink |
+| `--d200` | `#c3ceda` | `#2e3747` | Secondary ink |
+| `--d300` | `#a8b5c5` | `#3a4352` | Subtext |
+| `--d400` | `#93a2b4` | `#45505f` | Muted |
+| `--d500` | `#8394a8` | `#515e72` | Caption |
+| `--d600` | `#8091a5` | `#5f6b7d` | Placeholder |
+| `--d700` | `#2e3d50` | `#cfd8e3` | Dividers, decorative glyphs |
+| `--d750` | `#233040` | `#e6ebf3` | Surface |
+| `--d800` | `#1c2630` | `#f2f5fa` | Surface |
+| `--d850` | `#141b24` | `#ffffff` | Card |
+| `--d900` | `#0d1117` | `#edf1f6` | Panel |
+| `--d950` | `#080b10` | `#e4e9f0` | Deepest ground |
 
-### Ink — three values, and they sit close together
+### Surface wash ramp `--w015 … --w50`
 
-Muted text tested badly in the products: readers skipped it. That is not hierarchy, it is text
-nobody reads — so the band that may carry type is narrow, and every value in it is legible on its
-own. Hierarchy at the small end is carried by **weight and position**, not by fading the words.
+Every hairline, subtle fill and hover in the system resolves through one ramp, so there are no
+loose `rgba(255,255,255,…)` literals left in the library. Dark washes **white onto a dark ground**;
+light washes **navy `#0f172a` onto a light ground** — navy rather than black, because a neutral
+black wash reads grey and dirty. Alphas are re-tuned, not mirrored: hairlines (`--w07` and up) hold
+their alpha because dark-on-light needs the presence, while broad fills drop ~25% because
+dark-on-light reads heavier.
 
-| Role | Token | Use |
-|---|---|---|
-| `--ink-primary` | `--d50` | Anything you read: figures, headlines, names, body |
-| `--ink-secondary` | `--d100` | The supporting line under it |
-| `--ink-muted` | `--d200` | **The floor for type.** Slightly quiet, still read. Nothing fainter carries a word |
-| the family | §1 | A word *inside a sentence* may take a family hue when the word **is** the status — "**Callback** — they asked to be called back, 29 Aug." The rest of the line stays in the ink band |
-| `--ink-placeholder` | `--d400` | The one exception — a hint that must not read as a value |
-| `--ink-rule` | `--d600` | **NON-TEXT.** Hairlines, dots, dividers, disabled marks. Never type |
+Steps: `--w015 --w02 --w025 --w03 --w04 --w05 --w055 --w06 --w07 --w08 --w09 --w10 --w11 --w12
+--w13 --w14 --w15 --w16 --w18 --w20 --w22 --w40 --w50` (the suffix is the dark-mode alpha).
 
-`--d300` and below are for rules, dots and disabled states. If a piece of text feels like it wants
-`--d400`, the question is whether it needs to be on the screen at all.
+Companions: `--well` / `--well-strong` (recessed full-bleed strips — light grey recesses in light,
+never black scrims) and `--shc-1/2/3` (shadow ink by weight; component geometry stays local, only
+the ink is themed).
+
+### Text / ink roles
+
+| Role | Token | Dark | Light | Use |
+|---|---|---|---|---|
+| `--text-strong` | alias `--ink-primary` | `#f5f7fb` | `#0f172a` | Strong emphasis, headings |
+| `--text-primary` | alias `--ink-secondary` | `#dee5ed` | `#1e293b` | Anything you read: figures, names, body |
+| `--text-secondary` | — | `#c3ceda` | `#2e3747` | Secondary copy |
+| `--text-subtext` | alias `--ink-muted` | `#a8b5c5` | `#3a4352` | Evidence lines, supporting metadata |
+| `--text-muted` | — | `#93a2b4` | `#45505f` | Muted context |
+| `--text-caption` | alias `--ink-rule` | `#8394a8` | `#515e72` | Caption / metadata, non-text rules |
+| `--text-placeholder` | alias `--ink-placeholder` | `#8091a5` | `#5f6b7d` | A hint that must not read as a value |
+| `--text-link` | — | `#7ea7ff` | `#1d4ed8` | Interactive text |
 
 ### Brand & accent
 
 | Token | Dark | Light | Use |
 |---|---|---|---|
-| `--brand` | `#3369ff` | same | Primary CTA, focus rings, links, selection |
-| `--brand-dim` / `--brand-glow` | 15% / 25% | 12% / 20% | Tints, focus halos |
-| `--accent` | `#8b4ff4` | same | **The one token products re-theme — global, not per-product.** Nav active, chip selection, chat caret, coach marks. There is no `--qa-accent`, `--talent-accent` or any other product-scoped accent: a product sets `--accent` once and the whole system follows |
-| `--accent-rgb` / `-dim` / `-glow` | — | — | Derivatives of the accent |
-| `--teal` | `#6fdfe2` | `#0d8f95` | Secondary accent; darkened in light for text contrast |
-| `--ai` | `linear-gradient(104deg, #0066ff 0%, #61adf1 47%, #6fdfe2 100%)` | same | AI provenance — gradients, model dot, progress fills |
-| `--ai-text` | `#61adf1` | `#1f5fd0` | AI-blue text (badges, selected options) |
+| `--brand` | `#3369ff` | `#1d4ed8` | Primary CTA, focus rings, links, brand buttons, AI canvas accent |
+| `--brand-rgb` | `51,105,255` | `29,78,216` | Tint base — use `rgba(var(--brand-rgb), α)`, never the literal |
+| `--brand-dim` / `--brand-glow` | `rgba(…,.15)` / `.25` | `rgba(…,.10)` / `.18` | Tints, focus halos |
+| `--qa-accent` ⚠ | `#8b4ff4` | `#6725cc` | **Placeholder** — borrowed from the Talent product. Nav active state, chip active, topnav tab active; one swap propagates everywhere. Replace with the QA-specific magenta from the Figma logo before v2 ships |
+| `--qa-accent-rgb` / `-dim` / `-glow` | `139,79,244` / `.15` / `.25` | `103,37,204` / `.10` / `.18` | Derivatives of the accent |
+| `--cyan` (alias `--teal`) | `#45d3e6` | `#096673` | Secondary accent — AI identity signals, eyebrows, version badge, gradient endpoint |
+| `--cyan-rgb` | `69,211,230` | `9,102,115` | Tint base |
+| `--cyan-bg` (alias `--teal-dim`) / `--cyan-border` | `rgba(…,.12)` / `.30` | `rgba(…,.10)` / `.28` | Tints, borders |
+| `--purple` | `#8b4ff4` | `#6725cc` | Same value as `--qa-accent` |
+| `--ai` | `linear-gradient(104deg, #0066ff, #61adf1 47%, #45d3e6)` | `linear-gradient(104deg, #0047c7, #1f6fc4 47%, #0a7a8c)` | AI provenance — gradients, model dot, progress fills. Darkened in light so it survives `background-clip:text` |
+| `--ai-ink` / `--ai-ink-soft` | `#61adf1` / `#a8ccff` | `#0a57ac` / `#37618f` | The **readable** members of the AI ramp. The gradient is decoration; these carry text |
+| `--ai-rgb` | `0,102,255` | `0,82,212` | Tint base for AI-tinted fills and borders |
 
 Rule: **focus is always `--brand`**, never the product accent — focus stays consistent across every Aimy product.
 
-### Semantic status — a family of six, and a licence
+### Semantic status — full saturation, used directly
 
-**The rule has two halves.** A hue names *what kind of thing this is*; it never names a *position*.
-A rung on a ladder and a stage in a pipeline are read by order, and colouring them is how a product
-ends up with five steps in the same green. A kind — a dinner against a demo, a callback against a
-no-answer — is exactly what a hue is good for.
+Status colors are deliberately vibrant so a verdict reads at a glance: green for pass, amber for
+review/borderline, red for fail/critical, blue for informational. Each has a `-bg` tint and a
+`-border` line at the same hue; filled/solid variants (`.tag-solid`) use the hue as a background
+with `--text-on-status` for the label text — which is `#0d1117` in dark and `#ffffff` in light.
 
-**The other half is chroma.** The first cut of this licence took every hue off every label, and the
-result was worse in a different way: a wall of grey pills is not calm, it is undifferentiated, and
-a screen loses its bearings along with its noise. The fix was never fewer colours — it was quieter
-ones. At a quarter of the old saturation a tone stops being a signal and becomes a flavour, and six
-of them can sit on one screen without any of them raising its voice.
+Light values are **re-derived, not darkened by eye**: the dark hues sit at 1.6–2.6:1 on white and
+cannot carry text, so each was re-picked against a measured target and then re-checked inside
+nested tints (a tag on a tinted card composites to a darker ground than the card alone).
 
-**Why the old set failed.** Not because there were six, but because they were #17b26a, #f79009,
-#f04438 and #0ea5e9 — a green, an amber and a red at full strength, which is a traffic light
-whatever you attach it to. Amber between the other two was the worst of it, and it was spent on
-"owed", "late" and "gatekeeper", none of which is a warning.
+| Token | Dark | Light | On white | Means |
+|---|---|---|---|---|
+| `--ok` | `#4ed6a1` | `#066640` | 1.8:1 → 7.0:1 | Pass, resolved, decided well |
+| `--warn` | `#f7c95c` | `#6b4500` | 1.6:1 → 8.5:1 | Review, at risk, needs attention |
+| `--err` | `#ff7282` | `#a81029` | 2.6:1 → 7.6:1 | Fail, critical, decided badly |
+| `--info` | `#7ea7ff` | `#1a54bd` | 2.4:1 → 6.9:1 | Informational, provenance |
+| `--err-strong` | `#ff5268` | `#8a0b20` | — | A control, not a label — see below |
 
-The evidence for the change: across Sales, QA and Knowledge the ecosystem makes ~7,500 references
-to a hue-bearing token, and the two most-used are `--err` (1,414) and `--ok` (1,087) — both ahead
-of `--brand` (942). Red and green were the busiest colours in the system. Astro UXDS names the
-failure: overusing a hue for two unrelated jobs "stripped the color of its attention-getting power".
+Each also has a matching `-rgb` companion (`--ok-rgb` etc.). **Always tint through the companion**
+— `rgba(var(--ok-rgb), .1)` — never `rgba(78,214,161,.1)`, or the tint stays pinned to the dark hue.
 
-| Token | Dark | Light | Means | HSL (dark) | On card |
-|---|---|---|---|---|---|
-| `--ok` | `#7fae94` | `#3f6b52` | decided, and decided well | H147 S22 L59 | 6.92:1 |
-| `--err` | `#d2827b` | `#8a473f` | decided badly, or a door shut for good | H5 S49 L65 | 5.96:1 |
-| `--info` | `#8aa6bd` | `#4d6b85` | provenance — this came from AiMY | H207 S28 L64 | 6.82:1 |
-| `--warn` | `#c0a47c` | `#7a613c` | needs attention, not an alarm | H35 S35 L62 | 7.30:1 |
-| `--err-strong` | `#f04438` | `#d92d20` | **not in the family** — see below | — | — |
-| `--accent-label` | `#a892bf` | `#5f5079` | the accent, at the family's chroma | H269 S26 L66 | 6.21:1 |
-| `--teal-label` | `#84b3b0` | `#3f6b68` | the teal, at the family's chroma | H176 S24 L61 | 7.47:1 |
+| Token | Value | Notes |
+|---|---|---|
+| `--ok-bg` / `--ok-border` / `--ok-glow` | `rgba(78,214,161,.12)` / `.30` / `.20` | |
+| `--warn-bg` / `--warn-border` | `rgba(247,201,92,.13)` / `.32` | No `--warn-glow` defined |
+| `--err-bg` / `--err-border` / `--err-glow` | `rgba(255,114,130,.12)` / `.30` / `.20` | |
+| `--info-bg` / `--info-border` | `rgba(126,167,255,.12)` / `.28` | |
+| `--text-on-status` | `#0d1117` dark / `#ffffff` light | Ink on **solid** status fills. It inverts because a solid chip is bright in dark and deep in light |
+| `--heat-ink` | `#0d1117` dark / `#0f172a` light | Ink on **heat-scale** fills. Near-black in both, because a heat cell is a saturated tint in both themes — do not use `--text-on-status` there |
 
-One chroma, one lightness, one voice. `--err` carries about twenty points more saturation than the
-rest, deliberately: the six are not used equally often, and a verdict should still reach you first.
+**`--err-strong` is a control, not a label.** It stops something already *in flight* — hanging up
+on a call mid-progress is the case it exists for. It is never a badge ground, never a border, never
+status text; where a red is used to say what something **is**, that's `--err`.
 
-**`--err-strong` is the exception, and it is a control, not a label.** The family is for words that
-describe something, and it is quiet on purpose. A filled control that stops something already *in
-flight* is not describing anything — it is an alarm, and an alarm is the one place a full chroma is
-correct. Hanging up on a person mid-call is the case it exists for; a mispress costs you the call,
-and muted it read as a suggestion. It is never a badge ground, never a border, never text: if a red
-is being used to say what something **is**, it is `--err`.
-`--accent-label` and `--teal-label` exist because `--accent` and `--teal` are identity tokens a
-product re-themes — a product that re-themes `--accent` should revisit its label rendering with it.
-
-The two survivors share one chroma and one lightness so they read as a pair rather than as two
-signals. The negative carries about ten points more saturation than the positive, deliberately:
-they are not used equally often, and the rarer, costlier one gets the louder half of a quiet pair.
-Measured 5.96:1 and 7.19:1 on the card, 7.33:1 and 6.4:1 on white — a step darker on white, as
-every hue here is.
-
-**And a third hue, for provenance.** The two poles say how something *ended*. `--info` says who it
-came *from*: AiMY noticed it, AiMY has an opinion about it, AiMY wrote it. That is the thing a
-reader most needs to know before trusting a line, it is worth a colour of its own, and it never
-sits on the same object as a verdict — so the three cannot collide. It is pulled to the poles'
-chroma so it joins the family rather than starting a second one.
-
-Three status hues in the whole ecosystem, then: **decided well · decided badly · came from AiMY.**
-Everything else is the neutral ramp.
-
-**What keeps its colour on top of that.** `--brand` is focus and the primary action; `--accent` is
-selection and the nav mark; `--ai` is the AI *surface* — the canvas, the streaming cursor, the
-model dot — and stays the full gradient it always was. Identity and affordance are not verdicts,
-and none of them was what the traffic-light reading was about.
-
-**Adopting it in a product.** Change values, not call sites. `tag-warn` and `tag-info` still exist
-and still resolve — they simply stop being hues. Where a product used a hue to distinguish
-categories (five kinds of appointment, six pipeline stages), that distinction moves to the word and
-to position; where it used one hue for several states, only the state that is genuinely an outcome
-keeps it.
+**Tags carry the hue directly.** `.tag-ok` / `.tag-warn` / `.tag-err` / `.tag-info` / `.tag-teal` /
+`.tag-ai` each take their tint as background, the full hue as text color, and a border at ~22%
+opacity of the same hue. `.tag-qa` uses `--qa-accent`. `.tag-neutral` is a translucent white ground
+with `--text-subtext`. `.tag-solid` variants fill with the full hue and switch to
+`--text-on-status`.
 
 ### Surfaces & helpers
 
+Dark marks elevation by getting **lighter**. Light cannot: once the card is white there is nowhere
+lighter to go, so `--card-bg-raised` stays white and the lift moves into `--shadow-*`.
+
 | Token | Dark | Light |
 |---|---|---|
-| `--body-bg` | `#0f1215` | `#f4f6f9` |
+| `--body-bg` | `#0f1215` | `#eef1f6` |
 | `--card-bg` | `#141b24` | `#ffffff` |
-| `--card-bg-raised` | `#1c2630` | `#f7f9fc` |
-| `--card-border` | `rgba(255,255,255,.07)` | `rgba(16,24,40,.10)` |
-| `--card-border-hover` | `rgba(255,255,255,.14)` | `rgba(16,24,40,.18)` |
-| `--card-border-focus` | `rgba(51,105,255,.4)` | same |
+| `--card-bg-raised` | `#1c2630` | `#ffffff` (lift comes from shadow) |
+| `--card-border` | `rgba(255,255,255,.07)` | `rgba(15,23,42,.10)` |
+| `--card-border-hover` | `rgba(255,255,255,.14)` | `rgba(15,23,42,.18)` |
+| `--card-border-focus` | `rgba(51,105,255,.4)` | `rgba(29,78,216,.45)` |
 | `--panel-bg` (glass panel) | `rgba(13,17,22,.95)` | `rgba(255,255,255,.96)` |
-| `--glass-bg` / `--glass-border` | dark glass | white glass |
-| `--text-strong` | `#ffffff` | `#10151b` |
-| `--hairline` | white @ 7% | ink @ 9% |
-| `--code-bg` | `#0b0f14` | **same — code blocks stay dark in both themes** |
+| `--glass-bg` / `--glass-border` | `rgba(20,27,36,.85)` / `rgba(255,255,255,.08)` | `rgba(255,255,255,.80)` / `rgba(15,23,42,.10)` |
+| `--glass-strong` / `--glass-soft` | `rgba(20,27,36,.90)` / `.65` | `rgba(255,255,255,.94)` / `.72` |
+| `--topbar-bg` | `rgba(15,18,21,.88)` | `rgba(255,255,255,.85)` |
+| `--panel-veil` (sidebar) | `rgba(10,13,17,.72)` | `rgba(255,255,255,.92)` |
+| `--surface-deep` / `--surface-float` | `#151d28` / `#1e2428` | `#ffffff` / `#ffffff` |
+| `--surface-sunken` | `#1a2330` | `#f2f5fa` |
+| `--code-bg` / `--code-border` | `#0d1117` / `rgba(255,255,255,.07)` | **unchanged** / `rgba(15,23,42,.16)` |
+| `--shc-1` / `-2` / `-3` (shadow ink) | `rgba(0,0,0,.20)` / `.35` / `.55` | `rgba(15,23,42,.05)` / `.09` / `.14` |
+
+### Gradients
+
+| Token | Value | Rule |
+|---|---|---|
+| `--ai` | `linear-gradient(104deg, #0066ff 0%, #61adf1 47%, #45d3e6 100%)` | AI identity only — logo, canvas strip, AI-scored badge bg. Light darkens it to `#0047c7 → #1f6fc4 → #0a7a8c` so it stays legible under `background-clip:text` |
+| `--grad-avatar` | `linear-gradient(135deg, #7c3aed, #3369ff)` | All user avatars/pills, never non-user elements. Light: `#6d28d9 → #1d4ed8` |
+| `--grad-display` | `linear-gradient(135deg, #fff 30%, var(--d300) 100%)` | Display-heading sheen. Light **must** run dark→mid (`#0b1220 → #4a5a73`) or the text disappears into the page |
+| Ellipse · primary | `radial-gradient(ellipse at 30% 50%, rgba(0,102,255,.18) 0%, rgba(97,173,241,.1) 28%, transparent 60%)` | Fixed background layer, one per page, bottom-left. Light drops to ~⅓ alpha — at dark-mode strength an ambient wash reads as a smudge |
+| Ellipse · secondary | `radial-gradient(ellipse at 75% 70%, rgba(69,211,230,.1) 0%, rgba(139,79,244,.07) 38%, transparent 60%)` | Fixed background layer, one per page, top-right. Same alpha reduction |
 
 ---
 
@@ -347,10 +353,269 @@ all.
 
 ## 4. Theming
 
-- Dark is default. Light mode = `<html data-theme="light">`; toggle persists to `localStorage` (`aimy-ds-theme`), applied pre-paint (no flash).
-- Overrides are **token-level** in `:root[data-theme="light"]` plus a small set of scoped chrome/component rules. Never fork component markup per theme.
-- Exceptions that stay dark in both themes: code blocks (`--code-bg`).
-- Both themes are contrast-audited: no text below 3:1 against its composited background.
+- Dark is default. Light mode = `<html data-theme="light">`; the toggle persists to `localStorage`
+  (`aimy-ds-theme`) and is resolved pre-paint from an inline `<head>` script, so there is no flash.
+  With nothing stored the page follows the OS `prefers-color-scheme` and keeps following it live.
+  Switch it in the top bar or with <kbd>Shift</kbd>+<kbd>D</kbd>.
+- Overrides are **token-level** in `:root[data-theme="light"]` (121 tokens) plus a handful of
+  scoped rules for the toggle itself. No component forks its markup or its rules per theme.
+- **Light is not dark inverted.** The two themes signal depth by opposite means — dark by getting
+  lighter, light by casting shadow — and the dark accents sit at 1.6–2.6:1 on white, so they are
+  re-derived rather than reused. See §1 for the per-token values.
+- Exceptions that deliberately do **not** flip:
+  | What | Behaviour | Reason |
+  |---|---|---|
+  | Code blocks | `--code-bg` and the `--syn-*` palette are inherited from `:root`; only `--code-border` changes | A snippet should read identically wherever it is quoted |
+  | Colour specimens | Swatches in Color Tokens / Preserved foundation stay pinned to literal hex | They document the palette itself, so they must not move with the theme |
+  | `--heat-ink` | Near-black in both themes | Heat-scale fills are saturated tints in both, so the ink must not follow `--text-on-status` |
+- **Never hardcode.** Surfaces go through `--card-bg` / `--surface-*`, ink through the `--d*` ramp,
+  hairlines and hovers through `--w*`, shadow ink through `--shc-*`, and tints through the `-rgb`
+  companions (`rgba(var(--ok-rgb), .1)`). A literal is a value that cannot be themed.
+- Both themes are audited against **composited** backgrounds, not nominal ones, across all
+  ~16,750 rendered elements:
+
+  | Theme | Items under target | Worst | Under 3:1 |
+  |---|---|---|---|
+  | Light | 5 | 3.40:1 | **0** |
+  | Dark | 83 | 2.86:1 | 8 |
+
+  Every one of the 8 dark items under 3:1 is `--qa-accent` set as text on `--qa-accent-dim`
+  (2.86:1), and 44 of the 83 involve that token — it is the **placeholder** borrowed from Talent,
+  and it is the single change that would clear them. For comparison the previous commit measured
+  62 items, worst 1.87:1, 10 under 3:1 across 40% fewer elements, so both the worst case and the
+  sub-3:1 count improved while the library grew.
+- The contrast table in `index.html` measures itself from the live token values and recomputes on
+  switch, so it cannot drift from the theme it documents.
+
+### Recovered after the colour pass
+
+An in-progress colour edit dropped a large part of the library from `index.html` before it was
+committed. It was recovered from the last commit and re-expressed in the **current** token layer,
+so the components and the new colours arrive together on the next `aimy-ds.css` extract.
+
+| What was lost | Scale | Evidence it was still needed |
+|---|---|---|
+| Component CSS | **460 classes** | All 460 are referenced by Knowledge and/or Sales today |
+| Component documentation | **91 sections** | Forms, tabs, tables, overlays, AI components, Knowledge v2 primitives |
+| Typography token layer | **29 tokens** | `--fs-*` `--fw-*` `--lh-*` `--ls-*` `--fst-*` — §2 documents all of them; both products ship them |
+| The nine `.ds-`-prefixed components | `ds-tabs` `ds-switch` `ds-choice` `ds-range` `ds-progress` `ds-field` `ds-textarea` `ds-kbd` `ds-divider` | Exactly the failure both `aimy-ds.css` headers warn about: *"the drop list is by banner section, never by `.ds-` prefix: nine real components carry that prefix and a prefix strip deletes them."* |
+
+Only **8** of the 468 dropped classes were genuinely unused, and going the other way only ~20
+classes now in the system are unused by either product — most of them documentation-site chrome
+(`ds-code-label`, `ds-copy-btn`, `aimy-overlay-demo`) rather than dead components. The library was
+not carrying significant cruft; it was missing most of itself.
+
+Four tokens were also referenced but never defined anywhere — `--transition-fast`,
+`--transition-base`, `--motion-hover-lift-sm/-md` — so every transition and hover lift reading them
+silently did nothing. They are now defined as the aliases they were plainly meant to be.
+
+**Renamed during recovery.** HEAD's vocabulary was mapped onto the current one rather than
+reintroduced: `--accent*` → `--qa-accent*`, `--ai-text` → `--ai-ink`, `--hairline` → `--w07`,
+`--teal-label` → `--cyan-label`, `--font-display` → `--font-sans` (Poppins is no longer loaded).
+62 per-component `[data-theme="light"]` overrides came back with the old light palette and were
+**deleted, not ported** — every one only restated what the token layer already does, and keeping
+them would have reintroduced the very values this pass replaced.
+
+### Adopted back from the products
+
+`Knowledge/GAPS.md` (39 findings) and `Sales/old/GAPS.md` are gap registers written
+**for the design-system owner**: places where a product had to work around the library.
+Where both products independently built the same missing layer, the library is the thing
+at fault, and that layer has now been brought in here — translated into this system's
+vocabulary (px, `--qa-accent-rgb`, `--ai-ink`, `--w07`), not copied from either product's.
+
+| Adopted | Was | Source |
+|---|---|---|
+| **Press feedback** — `:active` on 20 controls at `scale(0.97)`, large surfaces at `scale(0.995)`, transitioned on `--t-press` | `translateY(1px)` on three classes; `--t-press` defined and **used by nothing** | GAPS §1.9. Both products built it; QA had built it before them. *"Two products inventing the same missing layer."* |
+| **Pointer targets** — WCAG 2.2 SC 2.5.8, 24×24 minimum via `::after` and `min-height` | controls drawing at 16–23px tall | Both products. Hit area grows, drawn size does not — the criterion is about the target, not the ink |
+| **Form-control reset** — `font-family: inherit` on form elements, `background: none` on button-rendered tabs, `strong/b` pinned to `--fw-extrabold` | nothing | GAPS. Most specimens here are `<div>`s, so the omission never surfaced on this page; on real `<button>`s tabs rendered in the UA font over `buttonface` |
+| **Entry stagger** — `.ds-stagger` / `.ds-enter`, 40ms per item capped at 8 | nothing | Shipped as `.k-stagger` in Knowledge and `.s-stagger` in Sales — same behaviour, two names. The neutral name lives here so they converge |
+| **`.aimy-toast`** corrected to the spec its own anatomy table states | the CSS implemented a *different* toast: bottom-right, green success chip, column layout, horizontal divider, `--ok` fill over 4s | GAPS §1.10. All 8 documented rows diverged. Both products were overriding it locally |
+| **Button heights** — explicit `line-height` on `.btn` / `-sm` / `-lg` | inherited, so the same class measured 29px in one container and 25px in another | GAPS §1.11 |
+
+The toast was fixed **in place** rather than as an override layer: leaving the stale rules
+next to the correct table is precisely the confusion §1.10 reports — *"Both are in the same
+file, and only one is published."*
+
+### Reconciled against GAPS.md and against the products as built
+
+`Knowledge/GAPS.md` carries its own status table: twelve findings fixed on `close-gaps`, four
+still needing a decision. That branch is an ancestor of `main`, so the twelve were **already in the
+last commit** — and the colour pass then dropped some of them again, in the same way it dropped
+`.search-field`: the rule survived while declarations inside it did not. `.btn` kept its rule and
+lost its `line-height`.
+
+Closed in this pass, each verified by measurement rather than by reading:
+
+| § | What was wrong | Now |
+|---|---|---|
+| **1.11** | I had set `.btn` line-heights to 16/15/17, copying Knowledge's local override. GAPS' own correction names those exact values as wrong — they render **34/27/39** | **14/12/15**, rendering **32/24/37**, with **spread 0** measured across containers of line-height 1 and 2.6. Context-independent, which is the point of the finding |
+| **1.2.1** | `.bcard` padding had drifted to 14 | 16, matching the library and *"settled at radius 16 / padding 16"* |
+| **§2 Case** | `.tag` and 17 other label pills rendered in **capitals with `--ls-wide` tracking** — contradicting this document's own rule | Sentence case, tracking dropped in the same edit, exactly as §2 requires and as Sales ships. 51 **section markers** keep their capitals, which is the one role §2 says they belong to |
+| **§2 floor** | *"Nothing is smaller than 12, and no product may lower it"* — recorded here as done in every product, while this file still had **732 sites** between 7px and 11.5px | All 732 raised. Smallest type outside a code sample is now 12px. Sales records the same move: *"Its type is 10.5–11.5px. On the scale here that is 12 and 13"* |
+| **—** | `.filter-chip` had fallen to 12px | `--fs-xs`, matching the library and both products |
+
+**Measured, not assumed.** The comparison was run by loading the design system, Sales and Knowledge
+in the same browser and diffing computed styles on shared classes. That is what caught `.tag` at
+10px in capitals and `.bcard` at 14 — none of which reads as wrong in source.
+
+It also caught a distinction worth keeping: Sales' `.tc-title` renders 18px/800, but that is
+`.b-qcard .tc-title`, a **product override**, not the library value. `aimy-ds.css` — the extracted
+layer both products start from — ships 14px/700. Card type sizes were therefore left alone rather
+than adopting a product's scoped decision as the system's.
+
+### The four that were left, resolved
+
+**§1.8 — the ramp had a collapsed rank, not a failing one.** Re-measured, dark already cleared AA
+on every rung, so the original finding had been overtaken. What it left behind is the defect §1.8
+warns about in its own remediation: *"raising a rung to fix its contrast moves it into its
+neighbour … a legibility fix that deletes a rank is not a fix."* `--d500` and `--d600` sat at
+**ΔE 1.15**, under the ~2.3 JND — two ranks rendering as one colour. Both are used **only** as
+`color` (44 and 28 sites), so neither could be demoted to a non-text rule value.
+
+Re-spaced along the existing hue so all three bottom rungs stay legible *and* stay distinct:
+
+| rung | was | now | worst contrast | ΔE to next |
+|---|---|---|---|---|
+| `--d400` | `#93a2b4` | `#95a4b5` | 6.03 | 4.86 |
+| `--d500` | `#8394a8` | `#8898ac` | 5.21 | 4.15 |
+| `--d600` | `#8091a5` | `#7c8ea4` | 4.57 | — |
+
+Every dark rung now clears AA (worst 4.57) and every adjacent pair clears the JND. §7's AA claim
+stands without qualification, which was the choice §1.8 asked for.
+
+**§1.1 — built.** Doctrine §6.2 bound "explain what AiMY detected" to `.context-zone` and
+"prioritised recommendations" to `.v2-chip`; both resolved to an anchor and to no CSS, so the
+binding pointed at classes that drew nothing. Both families are now implemented from their own
+anatomy tables — `.aimy-context-panel`, `.context-zone` and its `--state` / `--suggestions`
+variants, the state pill and its alternates, and the three-tier chip with severity on four channels
+(border tint, ground tint, a 2px **top** edge, and a badge) rather than on colour alone.
+
+**§1.3 — built.** Sixteen chart primitives documented and none implemented: `.v2-header` and its
+rows, `.v2-title` / `.v2-subtitle`, `.v2-controls`, `.range-tabs` / `.range-tab`,
+`.compare-toggle`, `.v2-stats-row` and the `.v2-stat*` family, `.v2-legend`, `.legend-item`,
+`.legend-line` (with a dashed variant, so a second series states itself as dashes rather than as a
+second hue), plus `.anno-dot` and `.anno-line`.
+
+All three sections now **demonstrate their classes instead of mocking them up**: 9,569 characters
+and 51 inline `style` attributes of hand-drawn specimen replaced by markup that uses the
+components. That was §1's actual complaint — *"the specimens that appear to demonstrate them are
+inline-styled, so the page looks complete while the classes it documents do not exist."*
+
+Sizes were raised to the 12px floor on the way in: the anatomy tables were written against the old
+scale and name 9–11px in several rows.
+
+**§4 — nothing to build here.** GAPS says so itself: *"Not a design-system defect; a tension inside
+`AiMY_Knowledge_v2_Design_Direction.md`."* §9.2 budgets seven to nine blocks from §10.3's declared
+nine, four of which are owner-only — so for an owner the inventory and the budget are the same set
+and composition never chooses, while a pure consumer cannot meet the budget at all. The machinery
+is correct; the inventory needs to be roughly double the budget before per-user composition means
+anything. **That is a product ruling, and it is still open.**
+
+### Components that rendered as raw browser controls
+
+The search field and the textarea were drawing as unstyled UA inputs — a white box with an inset
+border on a dark page. The cause is a failure mode a class-level check cannot see: **the colour
+pass removed base rules while leaving state rules behind.** `.search-field` kept only
+`.search-field.is-focus`; `.ds-textarea` kept only `.ds-textarea.is-error`. The class was still
+"present", so the earlier recovery pass — which compared class names — reported nothing missing.
+
+Re-running the comparison at **rule** level (selector by selector against the last commit) found
+186 lost rules, 155 of them matching live markup. Of those, ~130 were the per-component
+`[data-theme="light"]` overrides deliberately dropped earlier, leaving **21 genuine base rules**,
+now restored and re-expressed in current tokens:
+
+`.search-field` · `:focus-within` · ` svg` · ` input` · ` input::placeholder` — `.ds-textarea` ·
+`:focus` · `::placeholder` — `.ds-progress` — `.pop` — `.priority-badge.p1/.p2/.p3` —
+`.ds-preview` demo scoping (7) — `.token-item > *` / `.grad-item > *`
+
+Two needed correcting rather than restoring verbatim. `.ds-progress` took its track from
+`--card-bg-raised`, which is `#ffffff` in light — a white track on a white card; a track has to
+read on **any** surface, so it is a wash now. And the recovered `.ds-theme-toggle svg` belonged to
+the previous toggle; this file's toggle sizes its own icons.
+
+### Containers whose children were styled and which had no rule themselves
+
+Five more were found by asking the browser which specimen elements no class rule matches at all.
+Each had fully-styled children and nothing on the container, so it rendered as a stack of correct
+parts in the wrong shape — `.agent-header-info` already declared `flex:1`, `.goal-mini` was
+already a card, `.coaching-card-header` already drew its own divider.
+
+| Component | Rendered as | Now |
+|---|---|---|
+| `.agent-header` | avatar, info and actions stacked vertically | a row |
+| `.goal-six-grid` | six cards in one column, 533px tall | an auto-fit grid |
+| `.coaching-card` | a "card" with no surface, border or radius | a card |
+| `.driver-icon` | — | a sized inline box (it was only 0×0 because its section is collapsed) |
+| `.kf-score-ok/-warn/-err` | plain strong text — named for a verdict, showing none | the semantic colour |
+
+`.field-help` gained a standalone base rule (the line is not always inside a `.ds-field`) plus a
+`.is-error` / `.is-success` modifier, and three specimens that faked it with
+`style="color:var(--err)…"` now use the class — inline-styled specimens are what let a component
+look implemented while having no CSS, which is the whole subject of GAPS §1.
+
+**Still open:** 589 classes named in anatomy tables have no CSS, against 8 before this pass that
+were also *used* in a live specimen. Almost all of the 589 belong to the newer QA sections
+(`eval-*`, `editor-*`, `kdo-*`, `goal-*`, `v2-chip-*`, `cd-*`, `di-*`, `memory-*`), whose specimens
+are inline-styled: the page looks complete while the classes it documents do not exist. Only 3 of
+them exist in either product, so this cannot be recovered from Knowledge or Sales — it has to be
+built or the tables corrected.
+
+### Structure — the specimens now sit on the elements the products build them with
+
+A specimen is not just a picture of a component; it is the contract for how to compose one.
+Most of these were `<div>`s, and a component only ever exercised on a `<div>` silently depends on
+whatever the UA supplies the moment it is used on the element it *should* be used on.
+
+| Component | Was | Now | Why |
+|---|---|---|---|
+| `.type-card` | `<div>` | `<article>` | A self-contained item in a list. Sales composes its queue card as `<article class="type-card s-card b-qcard">` — the library card **is** the base, with product classes layered on |
+| `.tc-title` | `<div>` | `<button type="button">` | The title is the card's affordance — it opens the record. Needed `display:block; width:100%; text-align:left` to survive, since a button centres and shrink-wraps |
+| `.tc-summary` | `<div>` | `<p>` | Both products agree |
+| `.tab` | `<div>` | `<button role="tab" aria-selected>` | A tab strip is interactive; on a `<div>` it is not focusable, not reachable by keyboard, and announces as nothing |
+| `.chip` | `<div>` | `<button type="button">` | Sales builds chips as buttons |
+| `.menu-item` | `<div>` | `<button type="button">` | Already carried `role="menuitem"` while being unfocusable |
+
+That change is only safe because of the base reset adopted with it — the one both products ship
+**byte-identical**:
+
+```css
+button { background: none; border: 0; padding: 0; font: inherit; color: inherit; appearance: none; }
+```
+
+At element specificity (0,0,1) every component class still wins. Measured across all 68
+button-bearing classes on this page: 15 moved, and all 15 were components that had never declared
+a value and were inheriting the UA's button default. Three of them measured their *height* from it
+(`.cite-action`, `.td-action`, `.dv-notice-link`) and are now pinned to `--lh-tight` — the same
+class of defect as §1.11, found by the same reset. Verified after: `.tab` on a `<button>` renders
+transparent in Urbanist instead of a light grey chip in the UA font, and `.link` loses the 2px UA
+border it never wanted. 22 specimens are keyboard-reachable that were not.
+
+`data-select-sibling` now syncs `aria-selected` and the roving tabindex alongside `.active`. A
+`role="tab"` whose `aria-selected` still names the old tab tells a screen reader the inverse of the
+truth, which is worse than shipping no ARIA at all (GAPS §1.7; `dsTab()` already did this).
+
+### Not adopted, and why
+
+- **Knowledge's `.type-card` / `.tc-*`** — the newer card is written against Knowledge's own
+  `--ty-*` type scale, `--ink-faint`, `--hairline` and `rem` units against a fluid root. That
+  is the divergence §9 of this document exists to remove, so importing it would import the
+  drift. The portable parts (line-clamping, `text-wrap: pretty`, a quiet pill type badge) are
+  worth taking, but each needs re-expressing in this system's tokens first.
+- **Shell and layout overrides** (`.aimy-overlay`, `.aimy-float-wrap` moving to `position:
+  fixed`) — product app-shell positioning. The specimens here are `absolute` inside a preview
+  box on purpose.
+- **`.ds-theme-toggle`** — both products override it, but against the older toggle; this
+  file's is newer.
+
+### Still open
+
+Roughly 290 design-system classes are redefined by one product or the other. Most are local
+layout, but the registers name structural gaps this pass did not close — among them: no overlay
+primitive between `.aimy-overlay` and `.modal` (GAPS addendum); `.ai-insight-panel` bound by
+doctrine §6.2 to a class that draws nothing (§1.1); `.copy-field` embedding `.copy-btn`, which
+products drop as documentation chrome (§1.12); and nine components found drawn at specimen
+scale rather than product scale (§27, §30, §37, §39).
 
 ---
 
@@ -447,7 +712,8 @@ Every interactive component documents its states statically (for Figma capture) 
 
 ## 7. Accessibility
 
-- WCAG 2.1 AA target; both themes audited to ≥3:1 for all text (≥4.5:1 for body).
+- WCAG 2.1 AA target; both themes audited against composited backgrounds. Light has nothing
+  below 3:1; dark has 8 items at 2.86:1, all of them `--qa-accent` on its own tint. See §4.
 - Focus: `:focus-visible` only, 2px `--brand` outline, 2px offset. Never remove without replacement; never use the accent for focus.
 - Native elements first: `<details>` accordions/trees, native checkbox/radio/range where possible. **Select is the deliberate exception** — `.v2-dropdown` is a custom listbox chosen for cross-platform visual consistency, and it therefore carries its own keyboard model, focus management and ARIA (§10.3).
 - `prefers-reduced-motion: reduce` disables shimmer, pulses, spinners, lifts.
@@ -516,7 +782,7 @@ The doctrine's "Open scale flag" states `--d200` is undefined in the dark scale 
 | | Value | Defined at |
 |---|---|---|
 | Dark | `#c8d2dc` | `index.html:32` |
-| Light | `#2a3540` | `index.html:189` |
+| Light | `#2e3747` | `:root[data-theme="light"]` in `index.html` |
 
 `--d200` is safe to use. The ban should be lifted.
 
