@@ -37,9 +37,9 @@ sit ~1.22× apart in contrast, and every one clears AA on both `--card-bg` and `
 | `--d100` | `#dee5ed` | `#1e293b` | Primary ink |
 | `--d200` | `#c3ceda` | `#2e3747` | Secondary ink |
 | `--d300` | `#a8b5c5` | `#3a4352` | Subtext |
-| `--d400` | `#93a2b4` | `#45505f` | Muted |
-| `--d500` | `#8394a8` | `#515e72` | Caption |
-| `--d600` | `#8091a5` | `#5f6b7d` | Placeholder |
+| `--d400` | `#95a4b5` | `#45505f` | Muted |
+| `--d500` | `#8898ac` | `#515e72` | Caption |
+| `--d600` | `#7c8ea4` | `#5f6b7d` | Placeholder |
 | `--d700` | `#2e3d50` | `#cfd8e3` | Dividers, decorative glyphs |
 | `--d750` | `#233040` | `#e6ebf3` | Surface |
 | `--d800` | `#1c2630` | `#f2f5fa` | Surface |
@@ -71,9 +71,9 @@ the ink is themed).
 | `--text-primary` | alias `--ink-secondary` | `#dee5ed` | `#1e293b` | Anything you read: figures, names, body |
 | `--text-secondary` | — | `#c3ceda` | `#2e3747` | Secondary copy |
 | `--text-subtext` | alias `--ink-muted` | `#a8b5c5` | `#3a4352` | Evidence lines, supporting metadata |
-| `--text-muted` | — | `#93a2b4` | `#45505f` | Muted context |
-| `--text-caption` | alias `--ink-rule` | `#8394a8` | `#515e72` | Caption / metadata, non-text rules |
-| `--text-placeholder` | alias `--ink-placeholder` | `#8091a5` | `#5f6b7d` | A hint that must not read as a value |
+| `--text-muted` | — | `#95a4b5` | `#45505f` | Muted context |
+| `--text-caption` | alias `--ink-rule` | `#8898ac` | `#515e72` | Caption / metadata, non-text rules |
+| `--text-placeholder` | alias `--ink-placeholder` | `#7c8ea4` | `#5f6b7d` | A hint that must not read as a value |
 | `--text-link` | — | `#7ea7ff` | `#1d4ed8` | Interactive text |
 
 ### Brand & accent
@@ -357,7 +357,7 @@ all.
   (`aimy-ds-theme`) and is resolved pre-paint from an inline `<head>` script, so there is no flash.
   With nothing stored the page follows the OS `prefers-color-scheme` and keeps following it live.
   Switch it in the top bar or with <kbd>Shift</kbd>+<kbd>D</kbd>.
-- Overrides are **token-level** in `:root[data-theme="light"]` (121 tokens) plus a handful of
+- Overrides are **token-level** in `:root[data-theme="light"]` (126 tokens) plus a handful of
   scoped rules for the toggle itself. No component forks its markup or its rules per theme.
 - **Light is not dark inverted.** The two themes signal depth by opposite means — dark by getting
   lighter, light by casting shadow — and the dark accents sit at 1.6–2.6:1 on white, so they are
@@ -376,8 +376,8 @@ all.
 
   | Theme | Items under target | Worst | Under 3:1 |
   |---|---|---|---|
-  | Light | 5 | 3.40:1 | **0** |
-  | Dark | 83 | 2.86:1 | 8 |
+  | Light | 6 | 3.40:1 | **0** |
+  | Dark | 85 | 2.86:1 | 8 |
 
   Every one of the 8 dark items under 3:1 is `--qa-accent` set as text on `--qa-accent-dim`
   (2.86:1), and 44 of the 83 involve that token — it is the **placeholder** borrowed from Talent,
@@ -781,7 +781,7 @@ The doctrine's "Open scale flag" states `--d200` is undefined in the dark scale 
 
 | | Value | Defined at |
 |---|---|---|
-| Dark | `#c8d2dc` | `index.html:32` |
+| Dark | `#c3ceda` | `:root` in `index.html` |
 | Light | `#2e3747` | `:root[data-theme="light"]` in `index.html` |
 
 `--d200` is safe to use. The ban should be lifted.
