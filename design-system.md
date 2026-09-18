@@ -95,24 +95,78 @@ the ink is themed).
 
 Rule: **focus is always `--brand`**, never the product accent — focus stays consistent across every Aimy product.
 
-### Semantic status — full saturation, used directly
+### Semantic status — full saturation, and a mark is not a sentence
 
 Status colors are deliberately vibrant so a verdict reads at a glance: green for pass, amber for
 review/borderline, red for fail/critical, blue for informational. Each has a `-bg` tint and a
 `-border` line at the same hue; filled/solid variants (`.tag-solid`) use the hue as a background
 with `--text-on-status` for the label text — which is `#0d1117` in dark and `#ffffff` in light.
 
-Light values are **re-derived, not darkened by eye**: the dark hues sit at 1.6–2.6:1 on white and
-cannot carry text, so each was re-picked against a measured target and then re-checked inside
-nested tints (a tag on a tinted card composites to a darker ground than the card alone).
+Light cannot reuse the dark hues — they were chosen to glow against near-black and sit at
+1.6–2.6:1 on white. What light ships is **the bold family**, matched to Knowledge and Sales.
 
-| Token | Dark | Light | On white | Means |
-|---|---|---|---|---|
-| `--ok` | `#4ed6a1` | `#066640` | 1.8:1 → 7.0:1 | Pass, resolved, decided well |
-| `--warn` | `#f7c95c` | `#6b4500` | 1.6:1 → 8.5:1 | Review, at risk, needs attention |
-| `--err` | `#ff7282` | `#a81029` | 2.6:1 → 7.6:1 | Fail, critical, decided badly |
-| `--info` | `#7ea7ff` | `#1a54bd` | 2.4:1 → 6.9:1 | Informational, provenance |
-| `--err-strong` | `#ff5268` | `#8a0b20` | — | A control, not a label — see below |
+### The bold family, and the two jobs a hue has
+
+Light once carried a set re-derived against a contrast target: a bottle green, a brown where amber
+had been. Correct by the numbers, and it took the colour out of the one theme with room for it.
+**The bold family is back**, and the deep set it replaced was not deleted — it was re-pointed to
+the one role it is safe for.
+
+The split is the whole idea. A hue does two jobs, and only one of them is reading:
+
+- **`--ok` / `--warn` / `--err` / `--info` / `--cyan` are marks** — a ground, a border, a dot, an
+  icon, a tag's edge. These answer to **3:1**, and the bold family clears it on both grounds.
+- **`--ok-text` / `--warn-text` / `--err-text` / `--info-text` / `--cyan-text` are sentences.**
+  These answer to **4.5:1**, and the deep set clears it on both grounds. In dark they are aliases
+  of the hue, because a light hue on a dark ground needs no correction; light is the theme that
+  needs its own values, and defines them. A component names the role once and gets the right ink in
+  either theme instead of forking.
+
+| Token | Dark | Light mark | card / body | Light sentence ink | card / body | Means |
+|---|---|---|---|---|---|---|
+| `--ok` | `#4ed6a1` | `#0e9257` | 3.99 / 3.52 | `#066640` | 7.04 / 6.22 | Pass, resolved, decided well |
+| `--warn` | `#f7c95c` | `#b26205` | 4.52 / 4.00 | `#6b4500` | 8.48 / 7.49 | Review, at risk, needs attention |
+| `--err` | `#ff7282` | `#d92d20` | 4.83 / 4.27 | `#a81029` | 7.58 / 6.69 | Fail, critical, decided badly |
+| `--info` | `#7ea7ff` | `#067dc2` | 4.45 / 3.93 | `#1a54bd` | 6.89 / 6.09 | Informational, provenance |
+| `--cyan` | `#45d3e6` | `#0d8f95` | 3.90 / 3.45 | `#096673` | 6.65 / 5.87 | AI provenance, secondary accent |
+| `--err-strong` | `#ff5268` | `#b42318` | 6.57 / 5.81 | — | — | A control, not a label — see below |
+
+Card is `#ffffff`, body is `#eef1f6`. **These are measured against this system's own grounds.**
+Both products' libraries carry a table whose body column was taken on Sales's `#f4f6f9`; Knowledge
+inherited that comment verbatim although its body is `#eef1f6`, so its stated figures run about
+0.16 high. The conclusion survives the correction — the lowest mark is `--cyan` at 3.45 — but the
+numbers in Knowledge are not Knowledge's.
+
+**The tint is lighter than the ink, deliberately.** `--ok-bg` is a lighter green than `--ok`, which
+is how the old family worked: the ground stays a wash while the word on it stays legible. `--ok-rgb`
+tracks the **ink**, not the tint, because what reads it is some other alpha of the same hue.
+
+### What the table above does not measure, and a tag does
+
+Both figures above are the hue against a **flat** ground. A tag's word is not on a flat ground — it
+sits on a tint **of its own hue**, which composites toward the ink and closes the gap. Measured on
+the rendered components rather than derived:
+
+| Tag | Ink | On a card | On the body |
+|---|---|---|---|
+| `.tag-ok` | `#0e9257` | 3.47 | 3.10 |
+| `.tag-warn` | `#b26205` | 4.02 | 3.59 |
+| `.tag-err` | `#d92d20` | 4.02 | 3.58 |
+| `.tag-info` | `#067dc2` | 3.86 | 3.46 |
+| `.tag-ai` / `.tag-teal` | `#0d8f95` | 3.29 | **2.94** |
+
+So a light-mode tag reads between 2.9 and 4.0:1, and **`.tag-ai` on the body ground is the one that
+misses 3:1 outright.** Cyan is the narrowest of the five to begin with — 3.90 on the card where the
+next-lowest is 3.99 — and it is the only tag whose tint is struck from the same hex as its ink, so
+it has the least room of any of them.
+
+This is not a consequence of restoring the bold family here; it is a property of the family plus
+the `.tag` rule, and **Knowledge and Sales carry it identically** — same tokens, same
+`color: var(--ok)` on the tag. It is recorded rather than fixed because fixing it in this repo
+alone would put the reference implementation's tags at a different colour from both products, which
+is the thing this pass exists to stop. The fix, when it is made, is made in three places at once,
+and the cheapest one is already in the system: `.tag-*` takes `--ok-text` instead of `--ok`, which
+lands every tag between 5.0 and 7.5:1 without touching a single token value.
 
 Each also has a matching `-rgb` companion (`--ok-rgb` etc.). **Always tint through the companion**
 — `rgba(var(--ok-rgb), .1)` — never `rgba(78,214,161,.1)`, or the tint stays pinned to the dark hue.
@@ -132,7 +186,8 @@ status text; where a red is used to say what something **is**, that's `--err`.
 
 **Tags carry the hue directly.** `.tag-ok` / `.tag-warn` / `.tag-err` / `.tag-info` / `.tag-teal` /
 `.tag-ai` each take their tint as background, the full hue as text color, and a border at ~22%
-opacity of the same hue. `.tag-qa` uses `--qa-accent`. `.tag-neutral` is a translucent white ground
+opacity of the same hue — which is what puts their light-mode ink in the 2.9–4.0:1 band measured
+above, `.tag-ai` worst. `.tag-qa` uses `--qa-accent`. `.tag-neutral` is a translucent white ground
 with `--text-subtext`. `.tag-solid` variants fill with the full hue and switch to
 `--text-on-status`.
 
@@ -173,9 +228,13 @@ lighter to go, so `--card-bg-raised` stays white and the lift moves into `--shad
 
 ## 2. Typography
 
-**Pairing:** **Urbanist** = primary (body, UI, labels) · **Poppins** = display (H1/H2/H3) · **JetBrains Mono** = code/tokens. All loaded 300–800 with italics.
+**One face:** **Poppins** sets every word — body, UI, labels and headings alike · **JetBrains Mono** = code/tokens. Poppins is loaded 300–700 with a 400 italic.
 
-Tokens: `--font-sans` (Urbanist) · `--font-display` (Poppins) · `--font-mono` · `--fst-normal` / `--fst-italic`.
+There is no pairing left. `--font-sans` and `--font-display` both name Poppins; the display token stays so its callers keep working, not because a second face is behind it. Urbanist is gone from the font request in all three products.
+
+Tokens: `--font-sans` (Poppins) · `--font-display` (Poppins, the same face) · `--font-mono` · `--fst-normal` / `--fst-italic`.
+
+**What the one face costs.** Poppins has no tabular figures, so every `font-variant-numeric: tabular-nums` in the system is inert and each count, duration and money column sets on proportional digits — a figure changes width when its value changes. Measured at 100px with the property set, digit-width spread is 63.00 for Poppins against 0.00 for a face that supports it, so this is the font and not the test. `--font-mono` is the only place in the system where a figure holds its width. If aligned figures are wanted back without giving up this face, the fix is a third token for numerals only, applied to elements that are PURELY a number and never to a sentence with one in it.
 
 ### Scale (`--fs-*`) — three sizes, and each one names what it is for
 
@@ -215,6 +274,26 @@ Three products ran on four scales — the shell's `--fs-*`, Sales's own `--fs-*`
 Sales's surface scale `--t-*` — which is how 13 and 15 survived a floor that had already been
 agreed. All four are now even.
 
+**The reference implementation was the last one still off it.** Both products hold the rule on
+their live surfaces — Knowledge renders 12/14/16/20 and Sales 12/14/16/18/20/26, neither with a
+single run below 12 or on an odd step — while this page still carried **101 off-scale
+declarations**, which resolved to 2,213 runs because the worst offenders were its most-reused
+classes. They were 12.5, 13, 13.5, 15 and 17; the two fractional values alone accounted for 2,106
+runs through `.ds-nav-link`, `.ds-desc`, `.ds-table` and `.ds-callout`.
+
+98 were swept up to the next even step. Nine of them were library classes the products had already
+moved and this file had not — `.input` and `.empty-state-desc` at 12.5 against their 14,
+`.btn-lg`, `.chip-dismiss`, `.modal-body`, `.msg-bubble`, `.narrative-body` and `.surface-name` at
+13 against their 14, `.surface-icon` at 15 against their 16. Every one of those nine lands on the
+product's value under "round up to the next even step", so the rule and the products agree without
+anything having to be decided case by case. That is the rule doing the job it was written for.
+
+**Three are deliberately left off it**, because they are identical in this file, Knowledge and
+Sales: `.aimy-float-input` and `.overlay-input` at 13.5, and `.nav-item` at 13. The first two are
+the canvas and overlay inputs both products carved out of their own sweeps, on the rule that the
+assistant must not look different depending on which product you opened it from; moving them here
+alone would divide the three. They need one change made in all three repos, not one made here.
+
 ### Case — a tag is a name, a control is a verb
 
 **Label pills** — `.tag`, `.work-state`, `.s-meta-st`, `.signal-badge`, `.trust-state`,
@@ -242,8 +321,33 @@ name, and everywhere else it is doing a verb's work and takes sentence case.
 `.menu-label`, a table head. There is one of them per group, it labels a region rather than an
 object, and it is the single job `--ls-wide` exists for.
 
-### Weights (`--fw-*`)
-light 300 · regular 400 · medium 500 · semibold 600 · bold 700 · extrabold 800
+### Weights (`--fw-*`) — the ladder, re-cut for Poppins
+light 200 · regular 300 · medium 400 · semibold 500 · bold 600 · extrabold 700
+
+These numbers moved because the face changed. **The roles did not** — `--fw-bold` still means *the emphatic one*, it is just that in Poppins the emphatic one is 600.
+
+Poppins lays down more ink than Urbanist at every weight, and the gap widens as it gets heavier. Measured in canvas as alpha per px of line length — typographic colour, which is what the eye actually reads:
+
+| | Urbanist | Poppins, same number | drift |
+|---|---|---|---|
+| regular | 10.06 | 11.64 | +15.7% |
+| medium | 11.65 | 14.12 | +21.2% |
+| semibold | 13.74 | 16.60 | +20.8% |
+| bold | 15.44 | 19.34 | +25.3% |
+| extrabold | 16.83 | 21.37 | +27.0% |
+
+Every rank landed a fifth to a quarter heavier than the value the surface was calibrated against — on the Knowledge console, 62 of 326 runs sat at 700 or above and 102 at 600 or above, a third of the page shouting. Poppins covers in 300–700 the colour range Urbanist covered in 400–800, so the whole ladder drops one step and lands back on the intended colour: regular −8.0%, medium −0.1%, semibold +2.8%, bold +7.5%, extrabold +14.9%.
+
+**A raw number is outside the ladder, and the sweep is the whole job.** Changing the six tokens moves only what reads them. Every `font-weight: 700` written as a literal goes on rendering at a weight chosen for Urbanist, which is how all three products found the same fault after the face changed. The mapping is mechanical and identical everywhere:
+
+```
+800 -> --fw-extrabold (700)      600 -> --fw-semibold (500)
+700 -> --fw-bold      (600)      500 -> --fw-medium   (400)
+```
+
+400 and below are left alone: the type floor is 400 or heavier under 18px, so `--fw-regular` at 300 is display-only and anything at 16px or under names `--fw-medium`, which still holds 400.
+
+**The ladder is identical in Knowledge, Sales and the reference implementation on purpose.** All three ship this library and all three set Poppins; a ladder that differs between them is three design systems wearing one name.
 
 ### Line height (`--lh-*`) / tracking (`--ls-*`)
 lh: none 1 · tight 1.2 · snug 1.4 · base 1.55 · relaxed 1.75
@@ -264,16 +368,16 @@ the correction for free.
 
 | Role | Font | Size / Weight / Tracking |
 |---|---|---|
-| Hero H1 | Poppins | 46 / 800 / −0.03em |
-| Section H2 | Poppins | 24 / 800 / −0.02em |
-| Sub-heading H3 | Poppins | 18 / 700 |
-| Page title | Urbanist | 20 / 700 / −0.01em |
-| Body | Urbanist | 16 / 500 |
-| Card title | Urbanist | 16 / 700 |
-| Nav item | Urbanist | 16 / 600 |
-| Label / eyebrow | Urbanist | 14 / 700 / +0.06em, uppercase — the one role that keeps capitals |
-| Tag / status / work state | Urbanist | **12** / 700 / sentence case, both words capitalised at two words, 16px line box |
-| Meta beside something | Urbanist | 12 / 500–600 — a timestamp, a count, a unit, an attribution |
+| Hero H1 | Poppins | 46 / 700 / −0.03em |
+| Section H2 | Poppins | 24 / 700 / −0.02em |
+| Sub-heading H3 | Poppins | 18 / 600 |
+| Page title | Poppins | 20 / 600 / −0.01em |
+| Body | Poppins | 16 / 400 |
+| Card title | Poppins | 16 / 600 |
+| Nav item | Poppins | 16 / 500 |
+| Label / eyebrow | Poppins | 14 / 600 / +0.06em, uppercase — the one role that keeps capitals |
+| Tag / status / work state | Poppins | **12** / 600 / sentence case, both words capitalised at two words, 16px line box |
+| Meta beside something | Poppins | 12 / 400–500 — a timestamp, a count, a unit, an attribution |
 | Mono | JetBrains | 16 / 400–500 — inline `<code>` needs `font-size: 1em`, or the browser sets it to 13 |
 
 ### Hierarchy — a rank is a set of differences
@@ -411,7 +515,7 @@ silently did nothing. They are now defined as the aliases they were plainly mean
 
 **Renamed during recovery.** HEAD's vocabulary was mapped onto the current one rather than
 reintroduced: `--accent*` → `--qa-accent*`, `--ai-text` → `--ai-ink`, `--hairline` → `--w07`,
-`--teal-label` → `--cyan-label`, `--font-display` → `--font-sans` (Poppins is no longer loaded).
+`--teal-label` → `--cyan-label`. `--font-display` was folded into `--font-sans` here when Poppins was the display face and Urbanist the primary; §2 has since made Poppins the only face, so both tokens are defined again and both name it.
 62 per-component `[data-theme="light"]` overrides came back with the old light palette and were
 **deleted, not ported** — every one only restated what the token layer already does, and keeping
 them would have reintroduced the very values this pass replaced.
@@ -588,7 +692,7 @@ button-bearing classes on this page: 15 moved, and all 15 were components that h
 a value and were inheriting the UA's button default. Three of them measured their *height* from it
 (`.cite-action`, `.td-action`, `.dv-notice-link`) and are now pinned to `--lh-tight` — the same
 class of defect as §1.11, found by the same reset. Verified after: `.tab` on a `<button>` renders
-transparent in Urbanist instead of a light grey chip in the UA font, and `.link` loses the 2px UA
+transparent in Poppins instead of a light grey chip in the UA font, and `.link` loses the 2px UA
 border it never wanted. 22 specimens are keyboard-reachable that were not.
 
 `data-select-sibling` now syncs `aria-selected` and the roving tabindex alongside `.active`. A
